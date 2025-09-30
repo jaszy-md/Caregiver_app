@@ -1,8 +1,8 @@
 import 'package:go_router/go_router.dart';
 import '../layout/main_layout/main_layout.dart';
 import '../views/home/home_page.dart';
-import '../views/page2/page2_page.dart';
-import '../views/page3/page3_page.dart';
+import '../views/healthcheck/healthcheck_page.dart';
+import '../views/profile/profile_page.dart';
 import '../views/splash/splash_page.dart';
 
 class AppNavigation {
@@ -28,14 +28,16 @@ class AppNavigation {
                 (context, state) => const NoTransitionPage(child: HomePage()),
           ),
           GoRoute(
-            path: '/page2',
+            path: '/healthcheck',
             pageBuilder:
-                (context, state) => const NoTransitionPage(child: Page2Page()),
+                (context, state) =>
+                    const NoTransitionPage(child: HealthCheckPage()),
           ),
           GoRoute(
-            path: '/page3',
+            path: '/profile',
             pageBuilder:
-                (context, state) => const NoTransitionPage(child: Page3Page()),
+                (context, state) =>
+                    const NoTransitionPage(child: ProlfilePage()),
           ),
         ],
       ),

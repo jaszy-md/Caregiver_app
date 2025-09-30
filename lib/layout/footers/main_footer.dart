@@ -4,14 +4,22 @@ import 'package:go_router/go_router.dart';
 class MainFooter extends StatelessWidget {
   const MainFooter({super.key});
 
+  static final List<String> _routes = ['/home', '/healthcheck', '/profile'];
+
   @override
   Widget build(BuildContext context) {
-    final uri = GoRouterState.of(context).uri.toString();
-    final selectedIndex = _getSelectedIndex(uri);
+    final location = GoRouterState.of(context).matchedLocation;
+    final selectedIndex = _getSelectedIndex(location);
 
     return Container(
-      height: 60,
-      color: const Color(0xFFE0E0E0),
+      height: 90,
+      decoration: const BoxDecoration(
+        color: Color(0xFF0C3337),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(40),
+          topRight: Radius.circular(40),
+        ),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -26,15 +34,15 @@ class MainFooter extends StatelessWidget {
             context: context,
             index: 1,
             selectedIndex: selectedIndex,
-            icon: Icons.star,
-            route: '/page2',
+            icon: Icons.menu_book,
+            route: '/healthcheck',
           ),
           _buildNavItem(
             context: context,
             index: 2,
             selectedIndex: selectedIndex,
-            icon: Icons.settings,
-            route: '/page3',
+            icon: Icons.person,
+            route: '/profile',
           ),
         ],
       ),
@@ -48,22 +56,28 @@ class MainFooter extends StatelessWidget {
     required IconData icon,
     required String route,
   }) {
+    final isSelected = index == selectedIndex;
+
     return GestureDetector(
       onTap: () => context.go(route),
-      child: Icon(
-        icon,
-        size: 30,
-        color:
-            index == selectedIndex
-                ? Colors.grey[800] // donkergrijs voor geselecteerde pagina
-                : Colors.grey[600], // normaal grijs
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 43, color: Colors.white),
+          if (isSelected)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              height: 2,
+              width: 42,
+              color: Colors.white,
+            ),
+        ],
       ),
     );
   }
 
-  int _getSelectedIndex(String uri) {
-    if (uri.startsWith('/page2')) return 1;
-    if (uri.startsWith('/page3')) return 2;
-    return 0;
+  int _getSelectedIndex(String location) {
+    final index = _routes.indexWhere((route) => location.startsWith(route));
+    return index == -1 ? 0 : index;
   }
 }
