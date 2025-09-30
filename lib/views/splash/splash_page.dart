@@ -31,7 +31,7 @@ class _SplashPageState extends State<SplashPage> {
             totalRepeatCount: 1,
             onFinished: () {
               // Navigeren naar home na animatie
-              context.go('/home');
+              context.go('/login');
             },
           ),
         ),

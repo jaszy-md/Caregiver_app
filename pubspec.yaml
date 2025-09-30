@@ -41,6 +41,11 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/fonts/
 
+  fonts:
+    - family: JustMeAgainDownHere
+      fonts:
+        - asset: assets/fonts/Just_Me_Again_Down_Here/JustMeAgainDownHere-Regular.ttf
 
   

@@ -1,3 +1,4 @@
+import 'package:care_link/views/login/login_page.dart';
 import 'package:go_router/go_router.dart';
 import '../layout/main_layout/main_layout.dart';
 import '../views/home/home_page.dart';
@@ -16,7 +17,11 @@ class AppNavigation {
         pageBuilder:
             (context, state) => const NoTransitionPage(child: SplashPage()),
       ),
-
+      GoRoute(
+        path: '/login',
+        pageBuilder:
+            (context, state) => const NoTransitionPage(child: LoginPage()),
+      ),
       ShellRoute(
         builder: (context, state, child) {
           return MainLayout(child: child);
