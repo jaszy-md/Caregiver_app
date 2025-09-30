@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 
-class MainFooter extends StatelessWidget {
+class MainFooter extends StatefulWidget {
   const MainFooter({super.key});
 
   static final List<String> _routes = ['/home', '/healthcheck', '/profile'];
+
+  @override
+  State<MainFooter> createState() => _MainFooterState();
+}
+
+class _MainFooterState extends State<MainFooter> {
+  int focusedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -57,27 +65,45 @@ class MainFooter extends StatelessWidget {
     required String route,
   }) {
     final isSelected = index == selectedIndex;
+    final isFocused = index == focusedIndex;
 
-    return GestureDetector(
-      onTap: () => context.go(route),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 43, color: Colors.white),
-          if (isSelected)
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              height: 2,
-              width: 42,
-              color: Colors.white,
-            ),
-        ],
+    return KeyboardListener(
+      focusNode: FocusNode(),
+      onKeyEvent: (event) {
+        if (event is KeyDownEvent) {
+          context.go(route);
+        }
+      },
+      child: GestureDetector(
+        onTap: () => context.go(route),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 43, color: Colors.white),
+            if (isSelected)
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                height: 2,
+                width: 42,
+                color: Colors.white,
+              ),
+            if (isFocused && !isSelected)
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                height: 2,
+                width: 42,
+                color: Colors.grey,
+              ),
+          ],
+        ),
       ),
     );
   }
 
   int _getSelectedIndex(String location) {
-    final index = _routes.indexWhere((route) => location.startsWith(route));
+    final index = MainFooter._routes.indexWhere(
+      (route) => location.startsWith(route),
+    );
     return index == -1 ? 0 : index;
   }
 }
