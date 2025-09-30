@@ -19,39 +19,53 @@ class _MainFooterState extends State<MainFooter> {
     final location = GoRouterState.of(context).matchedLocation;
     final selectedIndex = _getSelectedIndex(location);
 
-    return Container(
-      height: 90,
-      decoration: const BoxDecoration(
-        color: Color(0xFF0C3337),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(40),
-          topRight: Radius.circular(40),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+    const footerColor = Color.fromARGB(255, 0, 25, 28);
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildNavItem(
-            context: context,
-            index: 0,
-            selectedIndex: selectedIndex,
-            icon: Icons.home,
-            route: '/home',
+          Container(
+            height: 90,
+            decoration: const BoxDecoration(
+              color: footerColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(40),
+                topRight: Radius.circular(40),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  context: context,
+                  index: 0,
+                  selectedIndex: selectedIndex,
+                  icon: Icons.home,
+                  route: '/home',
+                ),
+                _buildNavItem(
+                  context: context,
+                  index: 1,
+                  selectedIndex: selectedIndex,
+                  icon: Icons.menu_book,
+                  route: '/healthcheck',
+                ),
+                _buildNavItem(
+                  context: context,
+                  index: 2,
+                  selectedIndex: selectedIndex,
+                  icon: Icons.person,
+                  route: '/profile',
+                ),
+              ],
+            ),
           ),
-          _buildNavItem(
-            context: context,
-            index: 1,
-            selectedIndex: selectedIndex,
-            icon: Icons.menu_book,
-            route: '/healthcheck',
-          ),
-          _buildNavItem(
-            context: context,
-            index: 2,
-            selectedIndex: selectedIndex,
-            icon: Icons.person,
-            route: '/profile',
-          ),
+          // apart blokje precies voor de safe-area padding
+          if (bottomPadding > 0)
+            Container(height: bottomPadding, color: footerColor),
         ],
       ),
     );

@@ -84,7 +84,7 @@ class LoginPage extends StatelessWidget {
 
           Positioned(
             bottom: 100,
-            left: 25,
+            left: 20,
             child: Image.asset(
               'assets/images/arrow-login.png',
               height: 56,
