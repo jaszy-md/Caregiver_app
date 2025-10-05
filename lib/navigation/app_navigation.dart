@@ -60,9 +60,9 @@ class AppNavigation {
           if (caregiverRoutes.any((r) => uri.startsWith(r))) {
             _lastSection = 'caregiver';
             footer = const CaregiverFooter();
-
-            // Subheader alléén tonen op caregiverhome
-            if (uri.startsWith('/caregiverhome')) {
+            if (uri.startsWith('/caregiverhome') ||
+                uri.startsWith('/caregiver_id') ||
+                uri.startsWith('/help_guide')) {
               subHeader = const CaregiverSubHeader();
             }
           }
@@ -70,25 +70,26 @@ class AppNavigation {
           else if (patientRoutes.any((r) => uri.startsWith(r))) {
             _lastSection = 'patient';
             footer = const PatientFooter();
-
-            // Subheader alléén tonen op patienthome
-            if (uri.startsWith('/patienthome')) {
+            if (uri.startsWith('/patienthome') ||
+                uri.startsWith('/connect') ||
+                uri.startsWith('/help_guide')) {
               subHeader = const PatientSubHeader();
             }
           }
-          // Shared (hulpgids)
+          // Shared (hulpgids via deeplink)
           else if (uri.startsWith('/help_guide')) {
             if (_lastSection == 'caregiver') {
               footer = const CaregiverFooter();
+              subHeader = const CaregiverSubHeader();
             } else if (_lastSection == 'patient') {
               footer = const PatientFooter();
+              subHeader = const PatientSubHeader();
             }
           }
 
           return MainLayout(footer: footer, subHeader: subHeader, child: child);
         },
         routes: [
-          // Prehome met header=false
           GoRoute(
             path: '/prehome',
             pageBuilder:
@@ -100,51 +101,43 @@ class AppNavigation {
           // Caregiver
           GoRoute(
             path: '/caregiverhome',
-            pageBuilder:
-                (context, state) => _instantPage(const CaregiverHomePage()),
+            pageBuilder: (c, s) => _instantPage(const CaregiverHomePage()),
           ),
           GoRoute(
             path: '/stats',
-            pageBuilder:
-                (context, state) => _instantPage(const CaregiverStatsPage()),
+            pageBuilder: (c, s) => _instantPage(const CaregiverStatsPage()),
           ),
           GoRoute(
             path: '/caregiverprofile',
-            pageBuilder:
-                (context, state) => _instantPage(const CaregiverProlfilePage()),
+            pageBuilder: (c, s) => _instantPage(const CaregiverProlfilePage()),
           ),
           GoRoute(
             path: '/caregiver_id',
-            pageBuilder:
-                (context, state) => _instantPage(const CaregiverIdPage()),
+            pageBuilder: (c, s) => _instantPage(const CaregiverIdPage()),
           ),
 
           // Patient
           GoRoute(
             path: '/patienthome',
-            pageBuilder:
-                (context, state) => _instantPage(const PatientHomePage()),
+            pageBuilder: (c, s) => _instantPage(const PatientHomePage()),
           ),
           GoRoute(
             path: '/healthcheck',
-            pageBuilder:
-                (context, state) => _instantPage(const HealthCheckPage()),
+            pageBuilder: (c, s) => _instantPage(const HealthCheckPage()),
           ),
           GoRoute(
             path: '/patientprofile',
-            pageBuilder:
-                (context, state) => _instantPage(const PatientProfilePage()),
+            pageBuilder: (c, s) => _instantPage(const PatientProfilePage()),
           ),
           GoRoute(
             path: '/connect',
-            pageBuilder: (context, state) => _instantPage(const ConnectPage()),
+            pageBuilder: (c, s) => _instantPage(const ConnectPage()),
           ),
 
           // Shared view
           GoRoute(
             path: '/help_guide',
-            pageBuilder:
-                (context, state) => _instantPage(const HelpGuidePage()),
+            pageBuilder: (c, s) => _instantPage(const HelpGuidePage()),
           ),
         ],
       ),
