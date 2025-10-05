@@ -24,13 +24,12 @@ class _SplashPageState extends State<SplashPage> {
           child: AnimatedTextKit(
             animatedTexts: [
               TypewriterAnimatedText(
-                'Project Base',
+                'Carelink',
                 speed: const Duration(milliseconds: 150),
               ),
             ],
             totalRepeatCount: 1,
             onFinished: () {
-              // Navigeren naar home na animatie
               context.go('/login');
             },
           ),

@@ -22,7 +22,6 @@ class LoginPage extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-
           Positioned(
             bottom: 70,
             left: 0,
@@ -38,29 +37,33 @@ class LoginPage extends StatelessWidget {
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 20),
-                GestureDetector(
-                  onTap: () {
-                    context.go('/home');
-                  },
-                  child: Container(
-                    width: 237,
-                    height: 65,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      context.go('/prehome');
+                    },
+                    child: Container(
+                      width: 237,
+                      height: 65,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 6,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Image.asset(
+                          'assets/images/google.png',
+                          fit: BoxFit.contain,
+                          height: 65,
                         ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Image.asset(
-                        'assets/images/google.png',
-                        fit: BoxFit.contain,
-                        height: 65,
                       ),
                     ),
                   ),
@@ -81,7 +84,6 @@ class LoginPage extends StatelessWidget {
               ],
             ),
           ),
-
           Positioned(
             bottom: 100,
             left: 20,

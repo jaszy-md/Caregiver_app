@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 
-class MainFooter extends StatefulWidget {
-  const MainFooter({super.key});
+class PatientFooter extends StatefulWidget {
+  const PatientFooter({super.key});
 
-  static final List<String> _routes = ['/home', '/healthcheck', '/profile'];
+  static final List<String> _routes = [
+    '/patienthome',
+    '/healthcheck',
+    '/patientprofile',
+  ];
 
   @override
-  State<MainFooter> createState() => _MainFooterState();
+  State<PatientFooter> createState() => _PatientFooterState();
 }
 
-class _MainFooterState extends State<MainFooter> {
+class _PatientFooterState extends State<PatientFooter> {
   int focusedIndex = -1;
-
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
@@ -44,7 +47,7 @@ class _MainFooterState extends State<MainFooter> {
                   index: 0,
                   selectedIndex: selectedIndex,
                   icon: Icons.home,
-                  route: '/home',
+                  route: '/patienthome',
                 ),
                 _buildNavItem(
                   context: context,
@@ -58,12 +61,12 @@ class _MainFooterState extends State<MainFooter> {
                   index: 2,
                   selectedIndex: selectedIndex,
                   icon: Icons.person,
-                  route: '/profile',
+                  route: '/patientprofile',
                 ),
               ],
             ),
           ),
-          // apart blokje precies voor de safe-area padding
+
           if (bottomPadding > 0)
             Container(height: bottomPadding, color: footerColor),
         ],
@@ -115,7 +118,7 @@ class _MainFooterState extends State<MainFooter> {
   }
 
   int _getSelectedIndex(String location) {
-    final index = MainFooter._routes.indexWhere(
+    final index = PatientFooter._routes.indexWhere(
       (route) => location.startsWith(route),
     );
     return index == -1 ? 0 : index;
