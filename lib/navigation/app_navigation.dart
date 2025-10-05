@@ -35,6 +35,7 @@ class AppNavigation {
         pageBuilder: (context, state) => _instantPage(const LoginPage()),
       ),
 
+      // Alle routes met layout
       ShellRoute(
         builder: (context, state, child) {
           final uri = state.uri.toString();
@@ -55,30 +56,39 @@ class AppNavigation {
             '/connect',
           ];
 
-          // Checkt waar vandaan
+          // Caregiver sectie
           if (caregiverRoutes.any((r) => uri.startsWith(r))) {
             _lastSection = 'caregiver';
             footer = const CaregiverFooter();
-            subHeader = const CaregiverSubHeader();
-          } else if (patientRoutes.any((r) => uri.startsWith(r))) {
+
+            // Subheader alléén tonen op caregiverhome
+            if (uri.startsWith('/caregiverhome')) {
+              subHeader = const CaregiverSubHeader();
+            }
+          }
+          // Patient sectie
+          else if (patientRoutes.any((r) => uri.startsWith(r))) {
             _lastSection = 'patient';
             footer = const PatientFooter();
-            subHeader = const PatientSubHeader();
-          } else if (uri.startsWith('/help_guide')) {
-            // Toon footer en subheader gebaseerd op laatst bezochte sectie
 
+            // Subheader alléén tonen op patienthome
+            if (uri.startsWith('/patienthome')) {
+              subHeader = const PatientSubHeader();
+            }
+          }
+          // Shared (hulpgids)
+          else if (uri.startsWith('/help_guide')) {
             if (_lastSection == 'caregiver') {
               footer = const CaregiverFooter();
-              subHeader = const CaregiverSubHeader();
             } else if (_lastSection == 'patient') {
               footer = const PatientFooter();
-              subHeader = const PatientSubHeader();
             }
           }
 
           return MainLayout(footer: footer, subHeader: subHeader, child: child);
         },
         routes: [
+          // Prehome met header=false
           GoRoute(
             path: '/prehome',
             pageBuilder:
@@ -130,7 +140,7 @@ class AppNavigation {
             pageBuilder: (context, state) => _instantPage(const ConnectPage()),
           ),
 
-          // Shared
+          // Shared view
           GoRoute(
             path: '/help_guide',
             pageBuilder:

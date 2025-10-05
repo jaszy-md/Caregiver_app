@@ -32,8 +32,8 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
                 Center(
                   child: Image.asset(
                     'assets/images/logo-wit.png',
-                    height: 60,
-                    width: 190,
+                    height: 80,
+                    width: 197,
                     fit: BoxFit.contain,
                   ),
                 ),
