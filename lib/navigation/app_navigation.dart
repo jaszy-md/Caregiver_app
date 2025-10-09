@@ -60,23 +60,15 @@ class AppNavigation {
           if (caregiverRoutes.any((r) => uri.startsWith(r))) {
             _lastSection = 'caregiver';
             footer = const CaregiverFooter();
-            if (uri.startsWith('/caregiverhome') ||
-                uri.startsWith('/caregiver_id') ||
-                uri.startsWith('/help_guide')) {
-              subHeader = const CaregiverSubHeader();
-            }
+            subHeader = const CaregiverSubHeader();
           }
           // Patient sectie
           else if (patientRoutes.any((r) => uri.startsWith(r))) {
             _lastSection = 'patient';
             footer = const PatientFooter();
-            if (uri.startsWith('/patienthome') ||
-                uri.startsWith('/connect') ||
-                uri.startsWith('/help_guide')) {
-              subHeader = const PatientSubHeader();
-            }
+            subHeader = const PatientSubHeader();
           }
-          // Shared (hulpgids via deeplink)
+          // Shared view (hulpgids via deeplink)
           else if (uri.startsWith('/help_guide')) {
             if (_lastSection == 'caregiver') {
               footer = const CaregiverFooter();
@@ -109,7 +101,7 @@ class AppNavigation {
           ),
           GoRoute(
             path: '/caregiverprofile',
-            pageBuilder: (c, s) => _instantPage(const CaregiverProlfilePage()),
+            pageBuilder: (c, s) => _instantPage(const CaregiverProfilePage()),
           ),
           GoRoute(
             path: '/caregiver_id',

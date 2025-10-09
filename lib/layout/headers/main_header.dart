@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 
 class MainHeader extends StatelessWidget implements PreferredSizeWidget {
   const MainHeader({super.key});
@@ -36,12 +35,6 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
                     width: 197,
                     fit: BoxFit.contain,
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.logout, color: Colors.white),
-                  onPressed: () {
-                    context.go('/login');
-                  },
                 ),
               ],
             ),
