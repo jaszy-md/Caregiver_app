@@ -9,7 +9,7 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Container(
-        color: Color.fromARGB(255, 0, 25, 28),
+        color: const Color.fromARGB(255, 0, 25, 28),
         child: SafeArea(
           child: Container(
             decoration: const BoxDecoration(
@@ -24,19 +24,16 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
                 stops: [0.0, 0.55, 1.0],
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const SizedBox(width: 48),
-                Center(
-                  child: Image.asset(
-                    'assets/images/logo-wit.png',
-                    height: 80,
-                    width: 197,
-                    fit: BoxFit.contain,
-                  ),
+            child: SizedBox(
+              height: preferredSize.height,
+              child: Center(
+                child: Image.asset(
+                  'assets/images/logo-wit.png',
+                  height: 80,
+                  width: 197,
+                  fit: BoxFit.contain,
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -45,5 +42,5 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(160);
+  Size get preferredSize => const Size.fromHeight(150);
 }
