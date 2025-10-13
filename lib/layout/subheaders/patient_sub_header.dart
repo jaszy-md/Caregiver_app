@@ -9,12 +9,14 @@ class PatientSubHeader extends StatelessWidget {
     return Container(
       height: 55,
       color: const Color(0xFF0C3337),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _buildNavItemWithImage(
             context,
-            imagePath: 'assets/images/connect-icon.png',
+            imagePath: 'assets/images/connect-icon-2.png',
             label: 'Connect',
             route: '/connect',
             imageLeft: true,
@@ -50,9 +52,14 @@ class PatientSubHeader extends StatelessWidget {
       width: 30,
       color: Colors.white,
     );
+
     final textWidget = Text(
       label,
-      style: const TextStyle(color: Colors.white, fontSize: 19),
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 19,
+        fontWeight: FontWeight.w500,
+      ),
     );
 
     return GestureDetector(

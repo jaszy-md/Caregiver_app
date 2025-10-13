@@ -42,14 +42,16 @@ class CaregiverProfilePage extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-                      // Achtergrondgradient (decoratief)
                       IgnorePointer(
                         child: Opacity(
                           opacity: 0.2,
                           child: Container(
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [Color(0xFF00A9BA), Color(0xFF63B2BA)],
+                                colors: [
+                                  Color.fromARGB(255, 1, 161, 175),
+                                  Color.fromARGB(255, 178, 247, 255),
+                                ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
@@ -62,7 +64,6 @@ class CaregiverProfilePage extends StatelessWidget {
                         ),
                       ),
 
-                      // Inhoud
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0),
                         child: Column(
@@ -118,7 +119,6 @@ class CaregiverProfilePage extends StatelessWidget {
 
                             SizedBox(height: containerHeight * 0.04),
 
-                            // ✅ Eigen knop, maar opent Flutter’s licentiescherm
                             SmallBtn(
                               text: 'Licenties',
                               onTap: () {
@@ -141,7 +141,6 @@ class CaregiverProfilePage extends StatelessWidget {
                         ),
                       ),
 
-                      // Onderste illustratie (decoratief)
                       Positioned(
                         bottom: 15,
                         left: 0,
