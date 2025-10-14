@@ -32,29 +32,26 @@ class _HealthCheckPageState extends State<HealthCheckPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
     final double arrowW = size.width * 0.14;
     final double graphW = size.width * 0.11;
-    final double rightOffset = size.width > 400 ? -48 : -56;
 
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            const SizedBox(height: 5),
-
-            const Padding(
-              padding: EdgeInsets.only(left: 0),
-              child: LineDotTitle(title: 'Health state'),
-            ),
-
-            const SizedBox(height: 20),
-
-            Stack(
-              clipBehavior: Clip.none,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 5),
+                const Padding(
+                  padding: EdgeInsets.only(left: 0),
+                  child: LineDotTitle(title: 'Health state'),
+                ),
+                const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.only(left: 20, right: 20),
                   child: SizedBox(
@@ -71,83 +68,79 @@ class _HealthCheckPageState extends State<HealthCheckPage> {
                     ),
                   ),
                 ),
-
-                Positioned(
-                  top: size.height * 0.055,
-                  right: rightOffset,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5),
-                        child: Image.asset(
-                          'assets/images/arrow-health-check.png',
-                          width: arrowW,
-                          fit: BoxFit.contain,
+                    children:
+                        _mystats.entries.map((entry) {
+                          return HealthStatTile(
+                            label: entry.key,
+                            value: entry.value,
+                            onIncrement: () => _increment(entry.key),
+                            onDecrement: () => _decrement(entry.key),
+                          );
+                        }).toList(),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 20, top: 2, bottom: 20),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      width: 118,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF04454B),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: const Color(0xFF008F9D),
+                          width: 2,
                         ),
                       ),
-
-                      SizedBox(width: size.width * 0.07),
-
-                      Transform.translate(
-                        offset: Offset(0, -size.height * 0.028),
-                        child: Image.asset(
-                          'assets/images/graph-up.png',
-                          width: graphW,
-                          fit: BoxFit.contain,
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Opslaan',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 20),
-
-            Padding(
-              padding: const EdgeInsets.only(right: 20),
-              child: Column(
+            Positioned(
+              top: size.height * 0.135,
+              right: 20,
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children:
-                    _mystats.entries.map((entry) {
-                      return HealthStatTile(
-                        label: entry.key,
-                        value: entry.value,
-                        onIncrement: () => _increment(entry.key),
-                        onDecrement: () => _decrement(entry.key),
-                      );
-                    }).toList(),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.only(right: 20, top: 2, bottom: 20),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Container(
-                  width: 118,
-                  height: 35,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF04454B),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: const Color(0xFF008F9D),
-                      width: 2,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(
+                      right: size.width * 0.04,
+                      top: size.height * 0.01,
+                    ),
+                    child: Image.asset(
+                      'assets/images/arrow-health-check.png',
+                      width: arrowW,
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    'Opslaan',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w500,
-                      fontSize: 15,
+                  Transform.translate(
+                    offset: Offset(0, -size.height * 0.025),
+                    child: Image.asset(
+                      'assets/images/graph-up.png',
+                      width: graphW,
+                      fit: BoxFit.contain,
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
