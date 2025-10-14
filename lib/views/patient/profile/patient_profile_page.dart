@@ -89,7 +89,7 @@ class PatientProfilePage extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Diana',
+                                        'Jasmin',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 16,
@@ -97,7 +97,7 @@ class PatientProfilePage extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        'Zorgbehoevende',
+                                        'Mantelzorger',
                                         style: TextStyle(
                                           color: Colors.white70,
                                           fontSize: 14,
@@ -119,7 +119,19 @@ class PatientProfilePage extends StatelessWidget {
 
                             SizedBox(height: containerHeight * 0.04),
 
-                            const SmallBtn(text: 'Bekijk mantelzorger'),
+                            SmallBtn(
+                              text: 'Licenties',
+                              onTap: () {
+                                showLicensePage(
+                                  context: context,
+                                  applicationName: 'CareLink',
+                                  applicationVersion: '1.0.0',
+                                  applicationLegalese:
+                                      '© ${DateTime.now().year} CareLink Team',
+                                );
+                              },
+                            ),
+
                             const SmallBtn(text: 'Verander rol'),
                             const SmallBtn(
                               text: 'Verwijder account',
