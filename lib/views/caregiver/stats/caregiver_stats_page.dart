@@ -17,14 +17,17 @@ class CaregiverStatsPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: const [
-                Padding(
+              children: [
+                const Padding(
                   padding: EdgeInsets.only(left: 0),
                   child: LineDotTitle(title: 'Status Check'),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(right: 0, bottom: 2),
-                  child: WeekTile(),
+                  padding: const EdgeInsets.only(right: 0),
+                  child: Transform.translate(
+                    offset: const Offset(0, 10),
+                    child: const WeekTile(),
+                  ),
                 ),
               ],
             ),

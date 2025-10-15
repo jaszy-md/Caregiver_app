@@ -30,7 +30,7 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
                 child: Image.asset(
                   'assets/images/logo-wit.png',
                   height: 80,
-                  width: 197,
+                  width: 170,
                   fit: BoxFit.contain,
                 ),
               ),
@@ -42,5 +42,5 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(150);
+  Size get preferredSize => const Size.fromHeight(130);
 }
