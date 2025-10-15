@@ -13,6 +13,12 @@ class GraphSection extends StatefulWidget {
 class _GraphSectionState extends State<GraphSection> {
   Color? _activeColor;
 
+  @override
+  void initState() {
+    super.initState();
+    _activeColor = const Color(0xFF00AEEF);
+  }
+
   void _toggleGlow(Color color) {
     setState(() {
       _activeColor = _activeColor == color ? null : color;
