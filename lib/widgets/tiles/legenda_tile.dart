@@ -78,7 +78,7 @@ class _LegendaTileState extends State<LegendaTile> {
               textAlign: TextAlign.left,
               style: const TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: Colors.black,
               ),

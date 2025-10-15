@@ -9,7 +9,7 @@ class CaregiverSubHeader extends StatelessWidget {
     return Container(
       height: 55,
       color: const Color(0xFF0C3337),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,

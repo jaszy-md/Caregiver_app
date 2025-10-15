@@ -199,7 +199,7 @@ class _GraphSectionState extends State<GraphSection> {
         ),
 
         const SizedBox(height: 2),
-
+        //legenda
         Container(
           margin: const EdgeInsets.only(left: 20),
           child: Center(
