@@ -1,97 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-class NotificationBlock extends StatefulWidget {
+class NotificationBlock extends StatelessWidget {
   final String label;
   final String imagePath;
   final bool isActive;
-  final VoidCallback onTap;
+  final VoidCallback onSelect;
   final Color activeColor;
+
+  final double? customWidth;
+  final double? customHeight;
+  final double? customIconSize;
 
   const NotificationBlock({
     super.key,
     required this.label,
     required this.imagePath,
     required this.isActive,
-    required this.onTap,
-    this.activeColor = const Color(0xFF00C7E5),
+    required this.onSelect,
+    this.activeColor = const Color.fromARGB(255, 5, 148, 145),
+    this.customWidth,
+    this.customHeight,
+    this.customIconSize,
   });
 
   @override
-  State<NotificationBlock> createState() => _NotificationBlockState();
-}
-
-class _NotificationBlockState extends State<NotificationBlock> {
-  bool _isFocused = false;
-
-  @override
   Widget build(BuildContext context) {
-    return FocusableActionDetector(
-      autofocus: widget.isActive,
-      onFocusChange: (focus) => setState(() => _isFocused = focus),
+    final double width = customWidth ?? 70;
+    final double height = customHeight ?? 55;
+    final double iconSize =
+        customIconSize ?? (width < height ? width * 0.75 : height * 0.75);
 
-      shortcuts: {
-        LogicalKeySet(LogicalKeyboardKey.enter): const ActivateIntent(),
-        LogicalKeySet(LogicalKeyboardKey.space): const ActivateIntent(),
-      },
-
-      actions: {
-        ActivateIntent: CallbackAction<ActivateIntent>(
-          onInvoke: (intent) => widget.onTap(),
-        ),
-      },
-
-      child: GestureDetector(
-        onTap: widget.onTap,
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          width: 90,
-          height: 90,
-          margin: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color:
-                  _isFocused || widget.isActive
-                      ? widget.activeColor
-                      : Colors.black,
-              width: _isFocused || widget.isActive ? 3 : 1.5,
-            ),
-            boxShadow:
-                _isFocused || widget.isActive
-                    ? [
-                      BoxShadow(
-                        color: widget.activeColor.withOpacity(0.45),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                      ),
-                    ]
-                    : [],
+    return GestureDetector(
+      onTap: onSelect,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        width: width,
+        height: height,
+        margin: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isActive ? activeColor : Colors.black,
+            width: isActive ? 3 : 1.5,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                widget.imagePath,
-                width: 40,
-                height: 40,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-              ),
-            ],
+          boxShadow:
+              isActive
+                  ? [
+                    BoxShadow(
+                      color: activeColor.withOpacity(0.45),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                  : [],
+        ),
+        child: Center(
+          child: Image.asset(
+            imagePath,
+            width: iconSize,
+            height: iconSize,
+            fit: BoxFit.contain,
           ),
         ),
       ),
