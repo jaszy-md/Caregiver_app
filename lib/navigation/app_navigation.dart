@@ -26,16 +26,13 @@ class AppNavigation {
   static final GoRouter router = GoRouter(
     initialLocation: '/splash',
     routes: [
+      // Splash outside shell
       GoRoute(
         path: '/splash',
         pageBuilder: (context, state) => _instantPage(const SplashPage()),
       ),
-      GoRoute(
-        path: '/login',
-        pageBuilder: (context, state) => _instantPage(const LoginPage()),
-      ),
 
-      // Alle routes met layout
+      // shared shell for the rest
       ShellRoute(
         builder: (context, state, child) {
           final uri = state.uri.toString();
@@ -56,20 +53,15 @@ class AppNavigation {
             '/connect',
           ];
 
-          // Caregiver sectie
           if (caregiverRoutes.any((r) => uri.startsWith(r))) {
             _lastSection = 'caregiver';
             footer = const CaregiverFooter();
             subHeader = const CaregiverSubHeader();
-          }
-          // Patient sectie
-          else if (patientRoutes.any((r) => uri.startsWith(r))) {
+          } else if (patientRoutes.any((r) => uri.startsWith(r))) {
             _lastSection = 'patient';
             footer = const PatientFooter();
             subHeader = const PatientSubHeader();
-          }
-          // Shared view (hulpgids via deeplink)
-          else if (uri.startsWith('/help_guide')) {
+          } else if (uri.startsWith('/help_guide')) {
             if (_lastSection == 'caregiver') {
               footer = const CaregiverFooter();
               subHeader = const CaregiverSubHeader();
@@ -79,15 +71,44 @@ class AppNavigation {
             }
           }
 
-          return MainLayout(footer: footer, subHeader: subHeader, child: child);
+          final isLogin = uri.startsWith('/login');
+          final isPrehome = uri.startsWith('/prehome');
+
+          // Login no header/footer
+          if (isLogin) {
+            return MainLayout(
+              showHeader: false,
+              subHeader: null,
+              footer: null,
+              child: child,
+            );
+          }
+
+          // Prehome header, nofooter
+          if (isPrehome) {
+            return MainLayout(
+              showHeader: true,
+              subHeader: null,
+              footer: null,
+              child: child,
+            );
+          }
+
+          return MainLayout(
+            showHeader: true,
+            subHeader: subHeader,
+            footer: footer,
+            child: child,
+          );
         },
         routes: [
           GoRoute(
+            path: '/login',
+            pageBuilder: (context, state) => _instantPage(const LoginPage()),
+          ),
+          GoRoute(
             path: '/prehome',
-            pageBuilder:
-                (context, state) => _instantPage(
-                  const MainLayout(showHeader: false, child: PrehomePage()),
-                ),
+            pageBuilder: (context, state) => _instantPage(const PrehomePage()),
           ),
 
           // Caregiver
@@ -126,7 +147,7 @@ class AppNavigation {
             pageBuilder: (c, s) => _instantPage(const ConnectPage()),
           ),
 
-          // Shared view
+          // Shared
           GoRoute(
             path: '/help_guide',
             pageBuilder: (c, s) => _instantPage(const HelpGuidePage()),
