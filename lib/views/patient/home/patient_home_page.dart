@@ -13,6 +13,7 @@ class PatientHomePage extends StatefulWidget {
 class _PatientHomePageState extends State<PatientHomePage>
     with AutomaticKeepAliveClientMixin {
   String _selectedText = '';
+  bool joystickActive = true;
 
   @override
   bool get wantKeepAlive => true;
@@ -20,7 +21,6 @@ class _PatientHomePageState extends State<PatientHomePage>
   @override
   void initState() {
     super.initState();
-
     if (patientNotifications.isNotEmpty) {
       _selectedText = patientNotifications.first['label']!;
     }
@@ -28,6 +28,10 @@ class _PatientHomePageState extends State<PatientHomePage>
 
   void _onTileSelected(String text) {
     setState(() => _selectedText = text);
+  }
+
+  void updateJoystick(bool value) {
+    setState(() => joystickActive = value);
   }
 
   @override

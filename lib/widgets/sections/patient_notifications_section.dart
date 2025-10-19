@@ -1,8 +1,9 @@
+import 'package:care_link/controllers/joystick_controller.dart';
 import 'package:care_link/gen/assets.gen.dart';
+import 'package:care_link/widgets/buttons/joystick_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:care_link/data/patient_notifications.dart';
 import 'package:care_link/widgets/buttons/notification_block.dart';
-import 'package:care_link/widgets/buttons/direction_controller.dart';
 
 class PatientNotificationsSection extends StatefulWidget {
   final ValueChanged<String> onTileSelected;
@@ -19,7 +20,6 @@ class _PatientNotificationsSectionState
     with TickerProviderStateMixin {
   int _activeIndex = 0;
   final ScrollController _scrollController = ScrollController();
-
   final List<GlobalKey> _tileKeys = List.generate(
     patientNotifications.length,
     (_) => GlobalKey(),
@@ -44,9 +44,20 @@ class _PatientNotificationsSectionState
       CurvedAnimation(parent: _joystickController, curve: Curves.easeOutCubic),
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    JoystickController().activeNotifier.addListener(() {
       if (!mounted) return;
-      _joystickController.forward(from: 0);
+      if (JoystickController().active) {
+        _joystickController.forward();
+      } else {
+        _joystickController.reverse();
+      }
+      setState(() {});
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (JoystickController().active) {
+        _joystickController.forward(from: 0);
+      }
     });
   }
 
@@ -59,11 +70,9 @@ class _PatientNotificationsSectionState
 
   void _selectTile(int newIndex) {
     if (newIndex < 0 || newIndex >= patientNotifications.length) return;
-
     setState(() => _activeIndex = newIndex);
     widget.onTileSelected(patientNotifications[newIndex]['label']!);
 
-    // Auto scrol
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final context = _tileKeys[newIndex].currentContext;
       if (context != null) {
@@ -124,14 +133,12 @@ class _PatientNotificationsSectionState
         child: Stack(
           alignment: Alignment.center,
           children: [
-            RepaintBoundary(
-              child: Transform.scale(
-                scale: ipadImageScale,
-                child: Assets.images.ipad.image(
-                  fit: BoxFit.contain,
-                  gaplessPlayback: true,
-                  filterQuality: FilterQuality.high,
-                ),
+            Transform.scale(
+              scale: ipadImageScale,
+              child: Assets.images.ipad.image(
+                fit: BoxFit.contain,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.high,
               ),
             ),
 
@@ -193,24 +200,24 @@ class _PatientNotificationsSectionState
               ),
             ),
 
-            // joystick
-            Positioned(
-              bottom: 5,
-              child: SlideTransition(
-                position: _joystickAnimation,
-                child: DirectionController(
-                  onUp: () => _moveSelection('up'),
-                  onDown: () => _moveSelection('down'),
-                  onLeft: () => _moveSelection('left'),
-                  onRight: () => _moveSelection('right'),
-                  onOk: () {
-                    debugPrint(
-                      "OK pressed on ${patientNotifications[_activeIndex]['label']}",
-                    );
-                  },
+            if (JoystickController().active)
+              Positioned(
+                bottom: 5,
+                child: SlideTransition(
+                  position: _joystickAnimation,
+                  child: JoystickButton(
+                    onUp: () => _moveSelection('up'),
+                    onDown: () => _moveSelection('down'),
+                    onLeft: () => _moveSelection('left'),
+                    onRight: () => _moveSelection('right'),
+                    onOk: () {
+                      debugPrint(
+                        "OK pressed on ${patientNotifications[_activeIndex]['label']}",
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

@@ -3,6 +3,8 @@ import 'package:care_link/widgets/buttons/small_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:care_link/gen/assets.gen.dart';
+import 'package:care_link/widgets/toggles/joystick_toggle.dart';
+import 'package:care_link/controllers/joystick_controller.dart';
 
 class PatientProfilePage extends StatelessWidget {
   const PatientProfilePage({super.key});
@@ -11,7 +13,7 @@ class PatientProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final containerWidth = size.width * 0.8;
-    final containerHeight = size.height * 0.43;
+    final containerHeight = size.height * 0.46;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -63,6 +65,20 @@ class PatientProfilePage extends StatelessWidget {
                           ),
                         ),
                       ),
+                      Positioned(
+                        bottom: 6,
+                        left: 0,
+                        right: 0,
+                        child: IgnorePointer(
+                          child: Opacity(
+                            opacity: 0.5,
+                            child: Assets.images.profileImg.image(
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0),
                         child: Column(
@@ -81,7 +97,6 @@ class PatientProfilePage extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   const Column(
                                     crossAxisAlignment:
@@ -115,7 +130,56 @@ class PatientProfilePage extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            SizedBox(height: containerHeight * 0.04),
+                            const SizedBox(height: 15),
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              child: ValueListenableBuilder<bool>(
+                                valueListenable:
+                                    JoystickController().activeNotifier,
+                                builder: (context, active, _) {
+                                  return Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Assets.images.joystick.image(
+                                            width: 45,
+                                            height: 45,
+                                            fit: BoxFit.contain,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          const Text(
+                                            'Joystick besturing',
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 15,
+                                              color: Color(0xFF004E52),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      JoystickToggle(
+                                        initialValue: active,
+                                        onChanged: (value) async {
+                                          JoystickController().setActive(value);
+                                          await Future.delayed(
+                                            const Duration(milliseconds: 500),
+                                          );
+                                          if (context.mounted) {
+                                            context.go('/patienthome');
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                            SizedBox(height: containerHeight * 0.015),
                             SmallBtn(
                               text: 'Licenties',
                               onTap: () {
@@ -134,20 +198,6 @@ class PatientProfilePage extends StatelessWidget {
                               icon: Icons.delete_outline,
                             ),
                           ],
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 15,
-                        left: 0,
-                        right: 0,
-                        child: IgnorePointer(
-                          child: Opacity(
-                            opacity: 0.5,
-                            child: Assets.images.profileImg.image(
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
                         ),
                       ),
                     ],
