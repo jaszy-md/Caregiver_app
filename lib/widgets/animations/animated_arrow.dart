@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class AnimatedArrow extends StatefulWidget {
   final double width;
@@ -53,8 +54,7 @@ class _AnimatedArrowState extends State<AnimatedArrow>
   Widget build(BuildContext context) {
     return SlideTransition(
       position: _animation,
-      child: Image.asset(
-        'assets/images/arrow.png',
+      child: Assets.images.arrow.image(
         width: widget.width,
         height: widget.height,
         fit: BoxFit.contain,

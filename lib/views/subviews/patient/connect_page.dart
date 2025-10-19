@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:care_link/widgets/tiles/line_dot_title.dart';
 import 'package:care_link/widgets/tiles/connect_step_tile.dart';
-import 'package:care_link/widgets/sections/caregiver_connect_section.dart'; // <-- toegevoegd
+import 'package:care_link/widgets/sections/caregiver_connect_section.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class ConnectPage extends StatelessWidget {
   const ConnectPage({super.key});
@@ -9,7 +10,6 @@ class ConnectPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
     double flyerW = size.width * 0.18;
     flyerW = flyerW.clamp(80.0, 130.0);
     final double flyerH = flyerW * 1.12;
@@ -40,8 +40,7 @@ class ConnectPage extends StatelessWidget {
                         width: size.width,
                         child: Align(
                           alignment: Alignment.topRight,
-                          child: Image.asset(
-                            'assets/images/ketting-heel.png',
+                          child: Assets.images.kettingHeel.image(
                             width: size.width * 0.37,
                             height: size.height * 0.28,
                             fit: BoxFit.contain,
@@ -53,9 +52,7 @@ class ConnectPage extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 20),
-
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -82,12 +79,10 @@ class ConnectPage extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 Positioned(
                   top: size.height * 0.146,
                   right: 20,
-                  child: Image.asset(
-                    'assets/images/flyer.png',
+                  child: Assets.images.flyer.image(
                     width: flyerW,
                     height: flyerH,
                     fit: BoxFit.contain,
@@ -95,14 +90,10 @@ class ConnectPage extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 25),
-
             const LineDotTitle(title: 'Connect Mantelzorger'),
             const SizedBox(height: 25),
-
             const CaregiverConnectSection(),
-
             const SizedBox(height: 20),
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:care_link/widgets/tiles/line_dot_title.dart';
 import 'package:care_link/widgets/buttons/small_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class PatientProfilePage extends StatelessWidget {
   const PatientProfilePage({super.key});
@@ -23,7 +24,6 @@ class PatientProfilePage extends StatelessWidget {
               const SizedBox(height: 5),
               const LineDotTitle(title: 'Profiel'),
               const SizedBox(height: 25),
-
               Transform.translate(
                 offset: const Offset(-2, 0),
                 child: Container(
@@ -63,7 +63,6 @@ class PatientProfilePage extends StatelessWidget {
                           ),
                         ),
                       ),
-
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0),
                         child: Column(
@@ -116,9 +115,7 @@ class PatientProfilePage extends StatelessWidget {
                                 ],
                               ),
                             ),
-
                             SizedBox(height: containerHeight * 0.04),
-
                             SmallBtn(
                               text: 'Licenties',
                               onTap: () {
@@ -131,7 +128,6 @@ class PatientProfilePage extends StatelessWidget {
                                 );
                               },
                             ),
-
                             const SmallBtn(text: 'Verander rol'),
                             const SmallBtn(
                               text: 'Verwijder account',
@@ -140,7 +136,6 @@ class PatientProfilePage extends StatelessWidget {
                           ],
                         ),
                       ),
-
                       Positioned(
                         bottom: 15,
                         left: 0,
@@ -148,8 +143,7 @@ class PatientProfilePage extends StatelessWidget {
                         child: IgnorePointer(
                           child: Opacity(
                             opacity: 0.5,
-                            child: Image.asset(
-                              'assets/images/profile-img.png',
+                            child: Assets.images.profileImg.image(
                               width: double.infinity,
                               fit: BoxFit.cover,
                             ),

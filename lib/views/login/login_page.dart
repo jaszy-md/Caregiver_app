@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:care_link/gen/assets.gen.dart';
 import 'package:go_router/go_router.dart';
 
 class LoginPage extends StatelessWidget {
@@ -11,16 +12,10 @@ class LoginPage extends StatelessWidget {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/login-background.png',
-              fit: BoxFit.cover,
-            ),
+            child: Assets.images.loginBackground.image(fit: BoxFit.cover),
           ),
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/login-shape.png',
-              fit: BoxFit.cover,
-            ),
+            child: Assets.images.loginShape.image(fit: BoxFit.cover),
           ),
           Positioned(
             bottom: 70,
@@ -30,8 +25,7 @@ class LoginPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/images/logo-green-slogan.png',
+                Assets.images.logoGreenSlogan.image(
                   height: 80,
                   width: 248,
                   fit: BoxFit.contain,
@@ -59,8 +53,7 @@ class LoginPage extends StatelessWidget {
                         ],
                       ),
                       child: Center(
-                        child: Image.asset(
-                          'assets/images/google.png',
+                        child: Assets.images.google.image(
                           fit: BoxFit.contain,
                           height: 65,
                         ),
@@ -87,8 +80,7 @@ class LoginPage extends StatelessWidget {
           Positioned(
             bottom: 100,
             left: 20,
-            child: Image.asset(
-              'assets/images/arrow-login.png',
+            child: Assets.images.arrowLogin.image(
               height: 56,
               width: 56,
               fit: BoxFit.contain,

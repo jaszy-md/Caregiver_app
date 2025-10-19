@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class WeekStateTile extends StatelessWidget {
   final String percentage;
@@ -18,8 +19,7 @@ class WeekStateTile extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Image.asset(
-              'assets/images/status-widget.png',
+            Assets.images.statusWidget.image(
               fit: BoxFit.fill,
               width: 140,
               height: 130,
@@ -50,8 +50,7 @@ class WeekStateTile extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Image.asset(
-                    'assets/images/graph-up.png',
+                  Assets.images.graphUp.image(
                     width: 20,
                     height: 20,
                     fit: BoxFit.contain,

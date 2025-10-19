@@ -1,3 +1,4 @@
+import 'package:care_link/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -27,8 +28,7 @@ class MainHeader extends StatelessWidget implements PreferredSizeWidget {
             child: SizedBox(
               height: preferredSize.height,
               child: Center(
-                child: Image.asset(
-                  'assets/images/logo-wit.png',
+                child: Assets.images.logoWit.image(
                   height: 80,
                   width: 170,
                   fit: BoxFit.contain,

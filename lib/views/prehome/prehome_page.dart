@@ -1,3 +1,4 @@
+import 'package:care_link/gen/assets.gen.dart';
 import 'package:care_link/widgets/buttons/main_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +12,7 @@ class PrehomePage extends StatelessWidget {
       children: [
         Align(
           alignment: Alignment.bottomCenter,
-          child: Image.asset('assets/images/together.png', fit: BoxFit.contain),
+          child: Assets.images.together.image(fit: BoxFit.contain),
         ),
         Column(
           children: [
@@ -28,8 +29,7 @@ class PrehomePage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Center(
-              child: Image.asset(
-                'assets/images/dot-line.png',
+              child: Assets.images.dotLine.image(
                 width: 330,
                 fit: BoxFit.contain,
               ),

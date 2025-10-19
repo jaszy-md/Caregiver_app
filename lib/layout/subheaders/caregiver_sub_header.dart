@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class CaregiverSubHeader extends StatelessWidget {
   const CaregiverSubHeader({super.key});
@@ -16,20 +17,19 @@ class CaregiverSubHeader extends StatelessWidget {
         children: [
           _buildNavItemWithImage(
             context,
-            imagePath: 'assets/images/id-icon.png',
+            assetImage: Assets.images.idIcon,
             label: 'Jouw ID',
             route: '/caregiver_id',
             imageLeft: true,
           ),
-          Image.asset(
-            'assets/images/logo-heart.png',
+          Assets.images.logoHeart.image(
             height: 41,
             width: 44,
             color: Colors.white,
           ),
           _buildNavItemWithImage(
             context,
-            imagePath: 'assets/images/question-cloud-icon.png',
+            assetImage: Assets.images.questionCloudIcon,
             label: 'Hulpgids',
             route: '/help_guide',
             imageLeft: false,
@@ -41,16 +41,16 @@ class CaregiverSubHeader extends StatelessWidget {
 
   Widget _buildNavItemWithImage(
     BuildContext context, {
-    required String imagePath,
+    required AssetGenImage assetImage,
     required String label,
     required String route,
     required bool imageLeft,
   }) {
-    final imageWidget = Image.asset(
-      imagePath,
+    final imageWidget = assetImage.image(
       height: 30,
       width: 30,
       color: Colors.white,
+      fit: BoxFit.contain,
     );
 
     final textWidget = Text(

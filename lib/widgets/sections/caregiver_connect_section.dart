@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class CaregiverConnectSection extends StatelessWidget {
   const CaregiverConnectSection({super.key});
@@ -15,13 +16,11 @@ class CaregiverConnectSection extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Image.asset(
-                'assets/images/connect-mantelzorger.png',
+              child: Assets.images.connectMantelzorger.image(
                 width: size.width * 0.8,
                 fit: BoxFit.contain,
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Column(
@@ -58,9 +57,7 @@ class CaregiverConnectSection extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 25),
-
                   Container(
                     width: 120,
                     height: 35,
@@ -90,9 +87,7 @@ class CaregiverConnectSection extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
                   Container(
                     height: size.height * 0.18,
                     decoration: BoxDecoration(
@@ -104,15 +99,13 @@ class CaregiverConnectSection extends StatelessWidget {
                       alignment: Alignment.topCenter,
                       child: Padding(
                         padding: const EdgeInsets.only(top: 10),
-                        child: Image.asset(
-                          'assets/images/caregiver-connect.png',
+                        child: Assets.images.caregiverConnect.image(
                           width: size.width * 0.4,
                           fit: BoxFit.contain,
                         ),
                       ),
                     ),
                   ),
-
                   SizedBox(height: size.height * 0.045),
                 ],
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class DirectionController extends StatefulWidget {
   final VoidCallback onUp;
@@ -209,10 +210,7 @@ class _DirectionControllerState extends State<DirectionController> {
               ),
             ],
           ),
-          child: Image.asset(
-            'assets/images/arrow-joystick.png',
-            fit: BoxFit.contain,
-          ),
+          child: Assets.images.arrowJoystick.image(fit: BoxFit.contain),
         ),
       ),
     );

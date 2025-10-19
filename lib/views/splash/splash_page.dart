@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:go_router/go_router.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -9,31 +10,99 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> {
+class _SplashPageState extends State<SplashPage>
+    with SingleTickerProviderStateMixin {
+  double _progress = 0.0;
+  late final AnimationController _fadeController;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startPreload());
+  }
+
+  Future<void> _startPreload() async {
+    final allImages = [...Assets.images.values];
+
+    for (int i = 0; i < allImages.length; i++) {
+      await precacheImage(allImages[i].provider(), context);
+      if (!mounted) return;
+      setState(() => _progress = (i + 1) / allImages.length);
+    }
+
+    await Future.delayed(const Duration(milliseconds: 100));
+    await _fadeController.forward();
+
+    if (mounted) context.go('/login');
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: DefaultTextStyle(
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-          child: AnimatedTextKit(
-            animatedTexts: [
-              TypewriterAnimatedText(
-                'Carelink',
-                speed: const Duration(milliseconds: 150),
+      body: Stack(
+        alignment: Alignment.center,
+        children: [
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              DefaultTextStyle(
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF004F54),
+                  fontFamily: 'Poppins',
+                  letterSpacing: 1.0,
+                ),
+                child: AnimatedTextKit(
+                  animatedTexts: [
+                    TypewriterAnimatedText(
+                      'CareLink',
+                      speed: const Duration(milliseconds: 150),
+                    ),
+                  ],
+                  totalRepeatCount: 1,
+                ),
+              ),
+              const SizedBox(height: 40),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 80),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: _progress,
+                    minHeight: 10,
+                    backgroundColor: Colors.grey.shade300,
+                    color: const Color(0xFF004F54),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '${(_progress * 100).toInt()}%',
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16,
+                  color: Color(0xFF004F54),
+                ),
               ),
             ],
-            totalRepeatCount: 1,
-            onFinished: () {
-              context.go('/login');
-            },
           ),
-        ),
+          FadeTransition(
+            opacity: _fadeController,
+            child: Container(color: Colors.white),
+          ),
+        ],
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class CaregiverIdPage extends StatelessWidget {
   const CaregiverIdPage({super.key});
@@ -18,13 +19,11 @@ class CaregiverIdPage extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Image.asset(
-                'assets/images/caregiver-id.png',
+              child: Assets.images.caregiverId.image(
                 fit: BoxFit.contain,
                 alignment: Alignment.topCenter,
               ),
             ),
-
             Positioned(
               right: imageWidth * 0.27,
               bottom: imageHeight * 0.13,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class CaregiverFooter extends StatefulWidget {
   const CaregiverFooter({super.key});
@@ -54,7 +55,7 @@ class _CaregiverFooterState extends State<CaregiverFooter> {
                   context: context,
                   index: 1,
                   selectedIndex: selectedIndex,
-                  imagePath: 'assets/images/stats-icon.png',
+                  assetImage: Assets.images.statsIcon,
                   route: '/stats',
                 ),
                 _buildNavItem(
@@ -79,7 +80,7 @@ class _CaregiverFooterState extends State<CaregiverFooter> {
     required int index,
     required int selectedIndex,
     IconData? icon,
-    String? imagePath,
+    AssetGenImage? assetImage,
     required String route,
   }) {
     final isSelected = index == selectedIndex;
@@ -88,22 +89,19 @@ class _CaregiverFooterState extends State<CaregiverFooter> {
     return KeyboardListener(
       focusNode: FocusNode(),
       onKeyEvent: (event) {
-        if (event is KeyDownEvent) {
-          context.go(route);
-        }
+        if (event is KeyDownEvent) context.go(route);
       },
       child: GestureDetector(
         onTap: () => context.go(route),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (imagePath != null)
-              Image.asset(
-                imagePath,
+            if (assetImage != null)
+              assetImage.image(
                 height: 40,
                 width: 40,
-                color:
-                    Colors.white, // zodat het consistent is met de andere icons
+                color: Colors.white,
+                fit: BoxFit.contain,
               )
             else if (icon != null)
               Icon(icon, size: 43, color: Colors.white),

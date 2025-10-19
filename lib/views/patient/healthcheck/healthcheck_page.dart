@@ -2,6 +2,7 @@ import 'package:care_link/widgets/tiles/health_stat_title.dart';
 import 'package:flutter/material.dart';
 import 'package:care_link/widgets/tiles/line_dot_title.dart';
 import 'package:go_router/go_router.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class HealthCheckPage extends StatefulWidget {
   const HealthCheckPage({super.key});
@@ -33,7 +34,6 @@ class _HealthCheckPageState extends State<HealthCheckPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
     final double arrowW = size.width * 0.14;
     final double graphW = size.width * 0.11;
 
@@ -75,17 +75,18 @@ class _HealthCheckPageState extends State<HealthCheckPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children:
-                        _mystats.entries.map((entry) {
-                          return HealthStatTile(
-                            label: entry.key,
-                            value: entry.value,
-                            onIncrement: () => _increment(entry.key),
-                            onDecrement: () => _decrement(entry.key),
-                          );
-                        }).toList(),
+                        _mystats.entries
+                            .map(
+                              (entry) => HealthStatTile(
+                                label: entry.key,
+                                value: entry.value,
+                                onIncrement: () => _increment(entry.key),
+                                onDecrement: () => _decrement(entry.key),
+                              ),
+                            )
+                            .toList(),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.only(right: 20, top: 2, bottom: 20),
                   child: Align(
@@ -119,7 +120,6 @@ class _HealthCheckPageState extends State<HealthCheckPage> {
                 ),
               ],
             ),
-
             Positioned(
               top: size.height * 0.135,
               right: 20,
@@ -133,16 +133,14 @@ class _HealthCheckPageState extends State<HealthCheckPage> {
                         right: size.width * 0.04,
                         top: size.height * 0.01,
                       ),
-                      child: Image.asset(
-                        'assets/images/arrow-health-check.png',
+                      child: Assets.images.arrowHealthCheck.image(
                         width: arrowW,
                         fit: BoxFit.contain,
                       ),
                     ),
                     Transform.translate(
                       offset: Offset(0, -size.height * 0.025),
-                      child: Image.asset(
-                        'assets/images/graph-up.png',
+                      child: Assets.images.graphUp.image(
                         width: graphW,
                         fit: BoxFit.contain,
                       ),

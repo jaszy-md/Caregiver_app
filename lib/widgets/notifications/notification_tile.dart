@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:care_link/gen/assets.gen.dart';
 
 class NotificationTile extends StatelessWidget {
   final String label;
@@ -52,8 +53,7 @@ class NotificationTile extends StatelessWidget {
         Positioned(
           top: -20,
           left: -20,
-          child: Image.asset(
-            'assets/images/Notification.png',
+          child: Assets.images.notification.image(
             width: 53,
             height: 53,
             fit: BoxFit.contain,
