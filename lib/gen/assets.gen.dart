@@ -98,6 +98,10 @@ class $AssetsImagesGen {
   /// File path: assets/images/ketting.png
   AssetGenImage get ketting => const AssetGenImage('assets/images/ketting.png');
 
+  /// File path: assets/images/login-background-2.png
+  AssetGenImage get loginBackground2 =>
+      const AssetGenImage('assets/images/login-background-2.png');
+
   /// File path: assets/images/login-background.png
   AssetGenImage get loginBackground =>
       const AssetGenImage('assets/images/login-background.png');
@@ -184,6 +188,7 @@ class $AssetsImagesGen {
     joystick,
     kettingHeel,
     ketting,
+    loginBackground2,
     loginBackground,
     loginShape,
     logoGreenSlogan,

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:go_router/go_router.dart';
+import 'package:care_link/services/firebase/auth_service.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -17,7 +18,7 @@ class LoginPage extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Assets.images.loginBackground.image(fit: BoxFit.cover),
+              child: Assets.images.loginBackground2.image(fit: BoxFit.cover),
             ),
             Positioned.fill(
               child: Assets.images.loginShape.image(fit: BoxFit.cover),
@@ -40,7 +41,17 @@ class LoginPage extends StatelessWidget {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () => context.go('/prehome'),
+                      onTap: () async {
+                        final user = await AuthService().signInWithGoogle();
+
+                        if (user != null) {
+                          print('✅ Ingelogd als ${user.displayName}');
+                          if (context.mounted) context.go('/prehome');
+                        } else {
+                          print('❌ Inloggen geannuleerd of mislukt');
+                        }
+                      },
+
                       child: Container(
                         width: 237,
                         height: 65,
