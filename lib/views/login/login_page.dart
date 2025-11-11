@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:care_link/helpers/dialog_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:go_router/go_router.dart';
@@ -43,12 +44,16 @@ class LoginPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       onTap: () async {
                         final user = await AuthService().signInWithGoogle();
-
                         if (user != null) {
                           print('✅ Ingelogd als ${user.displayName}');
                           if (context.mounted) context.go('/prehome');
                         } else {
-                          print('❌ Inloggen geannuleerd of mislukt');
+                          await showCareLinkErrorDialog(
+                            context,
+                            title: 'Netwerkprobleem',
+                            message:
+                                'Er ging iets mis tijdens het inloggen. Controleer of je verbonden bent met wifi of mobiele data en probeer het opnieuw.',
+                          );
                         }
                       },
 

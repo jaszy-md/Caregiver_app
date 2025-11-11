@@ -5,9 +5,107 @@ import 'package:go_router/go_router.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:care_link/widgets/toggles/joystick_toggle.dart';
 import 'package:care_link/controllers/joystick_controller.dart';
+import 'package:care_link/services/firebase/auth_service.dart';
 
 class PatientProfilePage extends StatelessWidget {
   const PatientProfilePage({super.key});
+
+  // ✅ Zelfde dialog als Caregiver
+  Future<bool?> _showLogoutDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Weet u zeker dat u wilt uitloggen?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF00383D),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(true),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF005159),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Uitloggen',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(false),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Color(0xFFB0D7DB),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Annuleren',
+                        style: TextStyle(
+                          color: Color(0xFF00383D),
+                          fontSize: 15,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ✅ Uitlog functionaliteit
+  Future<void> _logout(BuildContext context) async {
+    final confirmed = await _showLogoutDialog(context);
+
+    if (confirmed == true) {
+      final auth = AuthService();
+      await auth.signOut();
+
+      if (context.mounted) {
+        context.go('/login');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +163,7 @@ class PatientProfilePage extends StatelessWidget {
                           ),
                         ),
                       ),
+
                       Positioned(
                         bottom: 6,
                         left: 0,
@@ -79,12 +178,14 @@ class PatientProfilePage extends StatelessWidget {
                           ),
                         ),
                       ),
+
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             SizedBox(height: containerHeight * 0.05),
+
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(
@@ -119,8 +220,10 @@ class PatientProfilePage extends StatelessWidget {
                                       ),
                                     ],
                                   ),
+
+                                  // ✅ Deze knop opent nu een dialog
                                   GestureDetector(
-                                    onTap: () => context.go('/login'),
+                                    onTap: () => _logout(context),
                                     child: const Icon(
                                       Icons.logout,
                                       color: Colors.white,
@@ -130,7 +233,9 @@ class PatientProfilePage extends StatelessWidget {
                                 ],
                               ),
                             ),
+
                             const SizedBox(height: 15),
+
                             Container(
                               margin: const EdgeInsets.symmetric(
                                 horizontal: 20,
@@ -179,6 +284,7 @@ class PatientProfilePage extends StatelessWidget {
                                 },
                               ),
                             ),
+
                             SizedBox(height: containerHeight * 0.015),
                             SmallBtn(
                               text: 'Licenties',

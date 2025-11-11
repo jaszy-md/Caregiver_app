@@ -126,6 +126,10 @@ class $AssetsImagesGen {
   AssetGenImage get logoWit =>
       const AssetGenImage('assets/images/logo-wit.png');
 
+  /// File path: assets/images/no_internet.png
+  AssetGenImage get noInternet =>
+      const AssetGenImage('assets/images/no_internet.png');
+
   /// File path: assets/images/note-cloud.png
   AssetGenImage get noteCloud =>
       const AssetGenImage('assets/images/note-cloud.png');
@@ -133,6 +137,9 @@ class $AssetsImagesGen {
   /// File path: assets/images/profile-img.png
   AssetGenImage get profileImg =>
       const AssetGenImage('assets/images/profile-img.png');
+
+  /// File path: assets/images/punaise.png
+  AssetGenImage get punaise => const AssetGenImage('assets/images/punaise.png');
 
   /// File path: assets/images/question-cloud-icon.png
   AssetGenImage get questionCloudIcon =>
@@ -156,6 +163,10 @@ class $AssetsImagesGen {
   /// File path: assets/images/together.png
   AssetGenImage get together =>
       const AssetGenImage('assets/images/together.png');
+
+  /// File path: assets/images/topbar-2.png
+  AssetGenImage get topbar2 =>
+      const AssetGenImage('assets/images/topbar-2.png');
 
   /// File path: assets/images/walk.png
   AssetGenImage get walk => const AssetGenImage('assets/images/walk.png');
@@ -195,14 +206,17 @@ class $AssetsImagesGen {
     logoHeart,
     logoWitFade,
     logoWit,
+    noInternet,
     noteCloud,
     profileImg,
+    punaise,
     questionCloudIcon,
     sleep,
     statsIcon,
     statusWidget2,
     statusWidget,
     together,
+    topbar2,
     walk,
     wc,
   ];

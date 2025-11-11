@@ -3,9 +3,106 @@ import 'package:care_link/widgets/buttons/small_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:care_link/gen/assets.gen.dart';
+import 'package:care_link/services/firebase/auth_service.dart';
 
 class CaregiverProfilePage extends StatelessWidget {
   const CaregiverProfilePage({super.key});
+
+  Future<void> _logout(BuildContext context) async {
+    final confirmed = await _showLogoutDialog(context);
+
+    if (confirmed == true) {
+      final auth = AuthService();
+      await auth.signOut();
+
+      if (context.mounted) {
+        context.go('/login');
+      }
+    }
+  }
+
+  Future<bool?> _showLogoutDialog(BuildContext context) async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Weet u zeker dat u wilt uitloggen?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF00383D),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(true),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF005159),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Uitloggen',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(false),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Color(0xFFB0D7DB),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Annuleren',
+                        style: TextStyle(
+                          color: Color(0xFF00383D),
+                          fontSize: 15,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +121,7 @@ class CaregiverProfilePage extends StatelessWidget {
               const SizedBox(height: 5),
               const LineDotTitle(title: 'Profiel'),
               const SizedBox(height: 25),
+
               Transform.translate(
                 offset: const Offset(-2, 0),
                 child: Container(
@@ -63,12 +161,14 @@ class CaregiverProfilePage extends StatelessWidget {
                           ),
                         ),
                       ),
+
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             SizedBox(height: containerHeight * 0.05),
+
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(
@@ -81,7 +181,6 @@ class CaregiverProfilePage extends StatelessWidget {
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   const Column(
                                     crossAxisAlignment:
@@ -104,8 +203,9 @@ class CaregiverProfilePage extends StatelessWidget {
                                       ),
                                     ],
                                   ),
+
                                   GestureDetector(
-                                    onTap: () => context.go('/login'),
+                                    onTap: () => _logout(context),
                                     child: const Icon(
                                       Icons.logout,
                                       color: Colors.white,
@@ -115,7 +215,9 @@ class CaregiverProfilePage extends StatelessWidget {
                                 ],
                               ),
                             ),
+
                             SizedBox(height: containerHeight * 0.04),
+
                             SmallBtn(
                               text: 'Licenties',
                               onTap: () {
@@ -128,6 +230,7 @@ class CaregiverProfilePage extends StatelessWidget {
                                 );
                               },
                             ),
+
                             const SmallBtn(text: 'Verander rol'),
                             const SmallBtn(
                               text: 'Verwijder account',
@@ -136,6 +239,7 @@ class CaregiverProfilePage extends StatelessWidget {
                           ],
                         ),
                       ),
+
                       Positioned(
                         bottom: 15,
                         left: 0,

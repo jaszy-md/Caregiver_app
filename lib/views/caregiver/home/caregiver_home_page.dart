@@ -4,6 +4,13 @@ import 'package:care_link/widgets/tiles/week-state-tile.dart';
 import 'package:flutter/material.dart';
 import 'package:care_link/widgets/tiles/line_dot_title.dart';
 
+class NotificationItem {
+  final String text;
+  final DateTime receivedAt;
+
+  NotificationItem(this.text) : receivedAt = DateTime.now();
+}
+
 class CaregiverHomePage extends StatefulWidget {
   const CaregiverHomePage({super.key});
 
@@ -15,7 +22,6 @@ class _CaregiverHomePageState extends State<CaregiverHomePage>
     with TickerProviderStateMixin {
   late final AnimationController _weekTileController;
   Animation<Offset>? _weekTileAnimation;
-
   late final AnimationController _tileController;
 
   final List<String> _allNotifications = [
@@ -25,7 +31,7 @@ class _CaregiverHomePageState extends State<CaregiverHomePage>
     '“Ik wil naar buiten”',
   ];
 
-  final List<String> _visibleNotifications = [];
+  final List<NotificationItem> _visibleNotifications = [];
 
   @override
   void initState() {
@@ -63,9 +69,8 @@ class _CaregiverHomePageState extends State<CaregiverHomePage>
   void _addNotification() {
     if (_visibleNotifications.length < _allNotifications.length) {
       setState(() {
-        _visibleNotifications.add(
-          _allNotifications[_visibleNotifications.length],
-        );
+        final nextText = _allNotifications[_visibleNotifications.length];
+        _visibleNotifications.add(NotificationItem(nextText));
       });
       _tileController.forward(from: 0);
     }
@@ -100,7 +105,6 @@ class _CaregiverHomePageState extends State<CaregiverHomePage>
                   ),
                 ),
               ),
-
               if (_weekTileAnimation != null)
                 SlideTransition(
                   position: _weekTileAnimation!,
@@ -113,7 +117,6 @@ class _CaregiverHomePageState extends State<CaregiverHomePage>
 
           const SizedBox(height: 10),
 
-          // Temporary test btn to add notificationss
           GestureDetector(
             onTap: _addNotification,
             child: const NotificationTitleTile(label: 'Notificaties'),
@@ -161,7 +164,7 @@ class _CaregiverHomePageState extends State<CaregiverHomePage>
                           right: 5,
                         ),
                         itemBuilder: (context, index) {
-                          final notification = _visibleNotifications[index];
+                          final item = _visibleNotifications[index];
 
                           final tileAnimation = Tween<Offset>(
                             begin: const Offset(0, -1),
@@ -209,7 +212,10 @@ class _CaregiverHomePageState extends State<CaregiverHomePage>
                                     vertical: 8,
                                   ),
                                   child: Dismissible(
-                                    key: Key(notification),
+                                    key: Key(
+                                      item.text +
+                                          item.receivedAt.toIso8601String(),
+                                    ),
                                     direction: DismissDirection.endToStart,
                                     onDismissed: (_) {
                                       setState(() {
@@ -217,7 +223,8 @@ class _CaregiverHomePageState extends State<CaregiverHomePage>
                                       });
                                     },
                                     child: NotificationTile(
-                                      label: notification,
+                                      label: item.text,
+                                      receivedAt: item.receivedAt,
                                     ),
                                   ),
                                 ),

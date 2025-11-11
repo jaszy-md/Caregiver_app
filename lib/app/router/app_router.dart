@@ -1,0 +1,6 @@
+import 'package:go_router/go_router.dart';
+import 'routes.dart';
+
+class AppRouter {
+  static final router = GoRouter(initialLocation: '/splash', routes: appRoutes);
+}
