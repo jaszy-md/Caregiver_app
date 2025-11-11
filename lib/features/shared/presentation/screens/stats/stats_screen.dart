@@ -1,0 +1,48 @@
+import 'package:care_link/features/shared/presentation/widgets/tiles/line_dot_title.dart';
+import 'package:care_link/features/shared/presentation/widgets/tiles/week_tile.dart';
+import 'package:flutter/material.dart';
+import 'package:care_link/features/shared/presentation/widgets/sections/graph_section.dart';
+
+class StatsScreen extends StatelessWidget {
+  const StatsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 0),
+                  child: LineDotTitle(title: 'Status Check'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 0),
+                  child: Transform.translate(
+                    offset: const Offset(0, 10),
+                    child: const WeekTile(),
+                  ),
+                ),
+              ],
+            ),
+
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: const GraphSection(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

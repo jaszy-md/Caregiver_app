@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-// Layout (nog oude structuur)
-import 'package:care_link/layout/main_layout/main_layout.dart';
-import 'package:care_link/layout/footers/caregiver_footer.dart';
-import 'package:care_link/layout/footers/patient_footer.dart';
-import 'package:care_link/layout/subheaders/caregiver_sub_header.dart';
-import 'package:care_link/layout/subheaders/patient_sub_header.dart';
+// Layout
+import 'package:care_link/features/shared/presentation/widgets/layout/main_layout/main_layout.dart';
+import 'package:care_link/features/caregiver/presentation/widgets/layout/caregiver_footer.dart';
+import 'package:care_link/features/patient/presentation/widgets/layout/patient_footer.dart';
+import 'package:care_link/features/caregiver/presentation/widgets/layout/caregiver_sub_header.dart';
+import 'package:care_link/features/patient/presentation/widgets/layout/patient_sub_header.dart';
 
-// Views (nog oude structuur)
-import 'package:care_link/views/splash/splash_page.dart';
-import 'package:care_link/views/prehome/prehome_page.dart';
-import 'package:care_link/views/login/login_page.dart';
+// Screens
+import 'package:care_link/features/splash/presentation/screens/splash_screen.dart';
+import 'package:care_link/features/prehome/presentation/screens/prehome_screen.dart';
+import 'package:care_link/features/auth/presentation/screens/login_screen.dart';
 
-import 'package:care_link/views/caregiver/home/caregiver_home_page.dart';
-import 'package:care_link/views/caregiver/profile/caregiver_profile_page.dart';
-import 'package:care_link/views/caregiver/stats/caregiver_stats_page.dart';
-import 'package:care_link/views/subviews/caregiver/caregiver_id_page.dart';
+import 'package:care_link/features/caregiver/presentation/screens/home/caregiver_home_screen.dart';
+import 'package:care_link/features/caregiver/presentation/screens/profile/caregiver_profile_screen.dart';
+import 'package:care_link/features/shared/presentation/screens/stats/stats_screen.dart';
+import 'package:care_link/features/caregiver/presentation/screens/caregiver_id/caregiver_id_screen.dart';
 
-import 'package:care_link/views/patient/home/patient_home_page.dart';
-import 'package:care_link/views/patient/profile/patient_profile_page.dart';
-import 'package:care_link/views/patient/healthcheck/healthcheck_page.dart';
-import 'package:care_link/views/subviews/patient/connect_page.dart';
+import 'package:care_link/features/patient/presentation/screens/home/patient_home_screen.dart';
+import 'package:care_link/features/patient/presentation/screens/profile/patient_profile_screen.dart';
+import 'package:care_link/features/patient/presentation/screens/healthcheck/healthcheck_screen.dart';
+import 'package:care_link/features/patient/presentation/screens/connect/connect_screen.dart';
 
-import 'package:care_link/views/subviews/shared_view/help_guide_page.dart';
+import 'package:care_link/features/shared/presentation/screens/help_guide/help_guide_screen.dart';
 
-// Oude helper uit AppNavigation
-CustomTransitionPage instantPage(Widget child) {
+// Instant page helper
+CustomTransitionPage instantScreen(Widget child) {
   return CustomTransitionPage(
     child: child,
     transitionDuration: Duration.zero,
@@ -35,7 +35,7 @@ CustomTransitionPage instantPage(Widget child) {
   );
 }
 
-// Route-groepen zoals in jouw originele code
+// Dezelfde lijsten als vroeger
 final caregiverRoutes = [
   '/caregiverhome',
   '/stats',
@@ -50,15 +50,16 @@ final patientRoutes = [
   '/connect',
 ];
 
-// De volledige routes-lijst die AppRouter gaat gebruiken
+// ⚡️ De originele aanpak: static variabele in dezelfde file
+String? _lastSection;
+
+// ✅ Routes met Shell logic exact zoals jouw oude implementatie
 final appRoutes = <RouteBase>[
-  // Splash buiten de shell
   GoRoute(
     path: '/splash',
-    pageBuilder: (context, state) => instantPage(const SplashPage()),
+    pageBuilder: (context, state) => instantScreen(const SplashScreen()),
   ),
 
-  // Shell route voor alle andere schermen
   ShellRoute(
     builder: (context, state, child) {
       final uri = state.uri.toString();
@@ -66,18 +67,31 @@ final appRoutes = <RouteBase>[
       Widget? footer;
       Widget? subHeader;
 
+      // ✅ Caregiver routes
       if (caregiverRoutes.any((r) => uri.startsWith(r))) {
+        _lastSection = 'caregiver';
         footer = const CaregiverFooter();
         subHeader = const CaregiverSubHeader();
-      } else if (patientRoutes.any((r) => uri.startsWith(r))) {
+      }
+      // ✅ Patient routes
+      else if (patientRoutes.any((r) => uri.startsWith(r))) {
+        _lastSection = 'patient';
         footer = const PatientFooter();
         subHeader = const PatientSubHeader();
       }
+      // ✅ Help guide logic zoals jouw originele code
+      else if (uri.startsWith('/help_guide')) {
+        if (_lastSection == 'caregiver') {
+          footer = const CaregiverFooter();
+          subHeader = const CaregiverSubHeader();
+        } else if (_lastSection == 'patient') {
+          footer = const PatientFooter();
+          subHeader = const PatientSubHeader();
+        }
+      }
 
-      final isLogin = uri.startsWith('/login');
-      final isPrehome = uri.startsWith('/prehome');
-
-      if (isLogin) {
+      // ✅ Login heeft niks
+      if (uri.startsWith('/login')) {
         return MainLayout(
           showHeader: false,
           subHeader: null,
@@ -86,7 +100,8 @@ final appRoutes = <RouteBase>[
         );
       }
 
-      if (isPrehome) {
+      // ✅ Prehome heeft wel header maar geen footer
+      if (uri.startsWith('/prehome')) {
         return MainLayout(
           showHeader: true,
           subHeader: null,
@@ -104,58 +119,55 @@ final appRoutes = <RouteBase>[
     },
 
     routes: [
-      // Auth
       GoRoute(
         path: '/login',
-        pageBuilder: (c, s) => instantPage(const LoginPage()),
+        pageBuilder: (c, s) => instantScreen(const LoginScreen()),
       ),
-
-      // Prehome
       GoRoute(
         path: '/prehome',
-        pageBuilder: (c, s) => instantPage(const PrehomePage()),
+        pageBuilder: (c, s) => instantScreen(const PrehomeScreen()),
       ),
 
       // Caregiver
       GoRoute(
         path: '/caregiverhome',
-        pageBuilder: (c, s) => instantPage(const CaregiverHomePage()),
+        pageBuilder: (c, s) => instantScreen(const CaregiverHomeScreen()),
       ),
       GoRoute(
         path: '/stats',
-        pageBuilder: (c, s) => instantPage(const CaregiverStatsPage()),
+        pageBuilder: (c, s) => instantScreen(const StatsScreen()),
       ),
       GoRoute(
         path: '/caregiverprofile',
-        pageBuilder: (c, s) => instantPage(const CaregiverProfilePage()),
+        pageBuilder: (c, s) => instantScreen(const CaregiverProfileScreen()),
       ),
       GoRoute(
         path: '/caregiver_id',
-        pageBuilder: (c, s) => instantPage(const CaregiverIdPage()),
+        pageBuilder: (c, s) => instantScreen(const CaregiverIdScreen()),
       ),
 
       // Patient
       GoRoute(
         path: '/patienthome',
-        pageBuilder: (c, s) => instantPage(const PatientHomePage()),
+        pageBuilder: (c, s) => instantScreen(const PatientHomeScreen()),
       ),
       GoRoute(
         path: '/healthcheck',
-        pageBuilder: (c, s) => instantPage(const HealthCheckPage()),
+        pageBuilder: (c, s) => instantScreen(const HealthCheckScreen()),
       ),
       GoRoute(
         path: '/patientprofile',
-        pageBuilder: (c, s) => instantPage(const PatientProfilePage()),
+        pageBuilder: (c, s) => instantScreen(const PatientProfileScreen()),
       ),
       GoRoute(
         path: '/connect',
-        pageBuilder: (c, s) => instantPage(const ConnectPage()),
+        pageBuilder: (c, s) => instantScreen(const ConnectScreen()),
       ),
 
       // Shared
       GoRoute(
         path: '/help_guide',
-        pageBuilder: (c, s) => instantPage(const HelpGuidePage()),
+        pageBuilder: (c, s) => instantScreen(const HelpGuideScreen()),
       ),
     ],
   ),

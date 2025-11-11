@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:care_link/app/router/app_router.dart';
 
 // Network overlay (nog oude locatie!)
-import 'package:care_link/notifiers/network_status_notifier.dart';
-import 'package:care_link/app/network_badge_overlay.dart';
+import 'package:care_link/features/network_check/state/network_status_notifier.dart';
+import 'package:care_link/features/network_check/presentation/widgets/network_badge_overlay.dart';
 
 class CareLinkApp extends StatelessWidget {
   const CareLinkApp({super.key});

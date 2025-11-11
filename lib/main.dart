@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-
-import 'firebase_options.dart';
+import 'core/services/firebase/firebase_initializer.dart';
 import 'app/app.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print('Firebase initialized successfully for CareLink');
+
+  // Firebase init via jouw initializer
+  await FirebaseInitializer.init();
+
+  print('✅ Firebase initialized successfully for CareLink');
+
   runApp(const CareLinkApp());
 }
