@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class NotificationBlock extends StatelessWidget {
   final String label;
   final String imagePath;
+  final bool isLocalAsset;
   final bool isActive;
   final VoidCallback onSelect;
   final Color activeColor;
@@ -15,6 +16,7 @@ class NotificationBlock extends StatelessWidget {
     super.key,
     required this.label,
     required this.imagePath,
+    required this.isLocalAsset,
     required this.isActive,
     required this.onSelect,
     this.activeColor = const Color.fromARGB(255, 5, 148, 145),
@@ -29,6 +31,21 @@ class NotificationBlock extends StatelessWidget {
     final double height = customHeight ?? 55;
     final double iconSize =
         customIconSize ?? (width < height ? width * 0.75 : height * 0.75);
+
+    final Widget img =
+        isLocalAsset
+            ? Image.asset(
+              imagePath,
+              width: iconSize,
+              height: iconSize,
+              fit: BoxFit.contain,
+            )
+            : Image.network(
+              imagePath,
+              width: iconSize,
+              height: iconSize,
+              fit: BoxFit.contain,
+            );
 
     return GestureDetector(
       onTap: onSelect,
@@ -56,14 +73,7 @@ class NotificationBlock extends StatelessWidget {
                   ]
                   : [],
         ),
-        child: Center(
-          child: Image.asset(
-            imagePath,
-            width: iconSize,
-            height: iconSize,
-            fit: BoxFit.contain,
-          ),
-        ),
+        child: Center(child: img),
       ),
     );
   }

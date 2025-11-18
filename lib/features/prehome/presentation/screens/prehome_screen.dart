@@ -1,13 +1,15 @@
+import 'package:care_link/core/providers/user_providers.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:care_link/features/shared/presentation/widgets/buttons/main_btn.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PrehomeScreen extends StatelessWidget {
+class PrehomeScreen extends ConsumerWidget {
   const PrehomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Stack(
       children: [
         Align(
@@ -35,21 +37,33 @@ class PrehomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 60),
+
+            // PATIËNT
             MainBtn(
               text: 'Zorgbehoevende',
               color: MainBtnColor.darkGreen,
-              onTap: () {
-                context.go('/patienthome');
+              onTap: () async {
+                await ref.read(setUserRoleProvider('patient').future);
+                if (context.mounted) {
+                  context.go('/patienthome');
+                }
               },
             ),
+
             const SizedBox(height: 20),
+
+            // MANTELZORGER
             MainBtn(
               text: 'Mantelzorger',
               color: MainBtnColor.lightGreen,
-              onTap: () {
-                context.go('/caregiverhome');
+              onTap: () async {
+                await ref.read(setUserRoleProvider('caregiver').future);
+                if (context.mounted) {
+                  context.go('/caregiverhome');
+                }
               },
             ),
+
             const Spacer(),
           ],
         ),

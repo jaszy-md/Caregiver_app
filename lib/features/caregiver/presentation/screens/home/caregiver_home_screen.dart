@@ -1,37 +1,26 @@
+import 'package:care_link/core/firestore/models/received_notification.dart';
+import 'package:care_link/core/providers/received_notifications_providers.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_tile.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_title_tile.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/tiles/week-state-tile.dart';
-import 'package:flutter/material.dart';
 import 'package:care_link/features/shared/presentation/widgets/tiles/line_dot_title.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class NotificationItem {
-  final String text;
-  final DateTime receivedAt;
-
-  NotificationItem(this.text) : receivedAt = DateTime.now();
-}
-
-class CaregiverHomeScreen extends StatefulWidget {
+class CaregiverHomeScreen extends ConsumerStatefulWidget {
   const CaregiverHomeScreen({super.key});
 
   @override
-  State<CaregiverHomeScreen> createState() => _CaregiverHomeScreenState();
+  ConsumerState<CaregiverHomeScreen> createState() =>
+      _CaregiverHomeScreenState();
 }
 
-class _CaregiverHomeScreenState extends State<CaregiverHomeScreen>
+class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
     with TickerProviderStateMixin {
   late final AnimationController _weekTileController;
   Animation<Offset>? _weekTileAnimation;
   late final AnimationController _tileController;
-
-  final List<String> _allNotifications = [
-    '“Ik heb honger”',
-    '“Ik moet naar het toilet”',
-    '“I miss you”',
-    '“Ik wil naar buiten”',
-  ];
-
-  final List<NotificationItem> _visibleNotifications = [];
 
   @override
   void initState() {
@@ -56,6 +45,7 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _weekTileController.forward(from: 0);
+      if (mounted) _tileController.forward(from: 0);
     });
   }
 
@@ -66,19 +56,27 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen>
     super.dispose();
   }
 
-  void _addNotification() {
-    if (_visibleNotifications.length < _allNotifications.length) {
-      setState(() {
-        final nextText = _allNotifications[_visibleNotifications.length];
-        _visibleNotifications.add(NotificationItem(nextText));
-      });
-      _tileController.forward(from: 0);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final double bottomPadding = MediaQuery.of(context).padding.bottom + 8;
+
+    final caregiverUid = FirebaseAuth.instance.currentUser?.uid;
+    if (caregiverUid == null) {
+      return const Center(
+        child: Text(
+          'Niet ingelogd',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 16,
+            color: Color(0xFF005159),
+          ),
+        ),
+      );
+    }
+
+    final asyncNotifications = ref.watch(
+      receivedNotificationsProvider(caregiverUid),
+    );
 
     return SafeArea(
       child: Column(
@@ -117,10 +115,8 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen>
 
           const SizedBox(height: 10),
 
-          GestureDetector(
-            onTap: _addNotification,
-            child: const NotificationTitleTile(label: 'Notificaties'),
-          ),
+          // Titeltegel – nu zonder fake onTap
+          const NotificationTitleTile(label: 'Notificaties'),
 
           const SizedBox(height: 3),
 
@@ -131,9 +127,22 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen>
                 right: 20,
                 bottom: bottomPadding,
               ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  if (_visibleNotifications.isEmpty) {
+              child: asyncNotifications.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error:
+                    (err, stack) => Center(
+                      child: Text(
+                        'Er ging iets mis bij het ophalen van notificaties',
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          color: Color(0xFF005159),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                data: (items) {
+                  if (items.isEmpty) {
                     return const Center(
                       child: Text(
                         'Geen notificaties ontvangen',
@@ -146,94 +155,10 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen>
                     );
                   }
 
-                  return SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight + 30,
-                      ),
-                      child: ListView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        shrinkWrap: true,
-                        clipBehavior: Clip.none,
-                        itemCount: _visibleNotifications.length,
-                        padding: const EdgeInsets.only(
-                          top: 3,
-                          bottom: 20,
-                          left: 5,
-                          right: 5,
-                        ),
-                        itemBuilder: (context, index) {
-                          final item = _visibleNotifications[index];
-
-                          final tileAnimation = Tween<Offset>(
-                            begin: const Offset(0, -1),
-                            end: Offset.zero,
-                          ).animate(
-                            CurvedAnimation(
-                              parent: _tileController,
-                              curve: Interval(
-                                0.1 * index,
-                                0.6 + 0.1 * index,
-                                curve: Curves.easeOutCubic,
-                              ),
-                            ),
-                          );
-
-                          return SlideTransition(
-                            position: tileAnimation,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Positioned.fill(
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(
-                                      vertical: 9,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color.fromARGB(
-                                        255,
-                                        133,
-                                        26,
-                                        17,
-                                      ).withOpacity(0.9),
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    alignment: Alignment.centerRight,
-                                    padding: const EdgeInsets.only(right: 20),
-                                    child: const Icon(
-                                      Icons.delete,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8,
-                                  ),
-                                  child: Dismissible(
-                                    key: Key(
-                                      item.text +
-                                          item.receivedAt.toIso8601String(),
-                                    ),
-                                    direction: DismissDirection.endToStart,
-                                    onDismissed: (_) {
-                                      setState(() {
-                                        _visibleNotifications.removeAt(index);
-                                      });
-                                    },
-                                    child: NotificationTile(
-                                      label: item.text,
-                                      receivedAt: item.receivedAt,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                  return _buildNotificationsList(
+                    context: context,
+                    items: items,
+                    caregiverUid: caregiverUid,
                   );
                 },
               ),
@@ -241,6 +166,97 @@ class _CaregiverHomeScreenState extends State<CaregiverHomeScreen>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNotificationsList({
+    required BuildContext context,
+    required List<ReceivedNotification> items,
+    required String caregiverUid,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight + 30),
+            child: ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              clipBehavior: Clip.none,
+              itemCount: items.length,
+              padding: const EdgeInsets.only(
+                top: 3,
+                bottom: 20,
+                left: 5,
+                right: 5,
+              ),
+              itemBuilder: (context, index) {
+                final item = items[index];
+
+                final tileAnimation = Tween<Offset>(
+                  begin: const Offset(0, -1),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: _tileController,
+                    curve: Interval(
+                      0.1 * index,
+                      0.6 + 0.1 * index,
+                      curve: Curves.easeOutCubic,
+                    ),
+                  ),
+                );
+
+                return SlideTransition(
+                  position: tileAnimation,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned.fill(
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 9),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(
+                              255,
+                              133,
+                              26,
+                              17,
+                            ).withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Dismissible(
+                          key: Key(item.id),
+                          direction: DismissDirection.endToStart,
+                          onDismissed: (_) async {
+                            await ref
+                                .read(receivedNotificationServiceProvider)
+                                .deleteNotification(
+                                  caregiverUid: caregiverUid,
+                                  notificationId: item.id,
+                                );
+                          },
+                          child: NotificationTile(
+                            label: item.receivedLabel,
+                            receivedAt: item.createdAt,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

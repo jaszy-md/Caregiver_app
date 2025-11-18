@@ -1,14 +1,22 @@
+import 'package:care_link/core/firestore/services/notifications_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:care_link/core/firestore/models/notification_item.dart';
 import 'package:care_link/features/patient/state/joystick_controller.dart';
 import 'package:care_link/gen/assets.gen.dart';
-import 'package:care_link/features/shared/presentation/widgets/buttons/joystick_btn.dart';
-import 'package:flutter/material.dart';
-import 'package:care_link/features/patient/data/patient_notifications.dart';
-import 'package:care_link/features/shared/presentation/widgets/buttons/notification_block.dart';
+import 'package:care_link/features/patient/presentation/widgets/buttons/joystick_btn.dart';
+import 'package:care_link/features/patient/presentation/widgets/notification_blocks/notification_block.dart';
 
 class PatientNotificationsSection extends StatefulWidget {
+  final List<NotificationItem> blocks;
   final ValueChanged<String> onTileSelected;
 
-  const PatientNotificationsSection({super.key, required this.onTileSelected});
+  const PatientNotificationsSection({
+    super.key,
+    required this.blocks,
+    required this.onTileSelected,
+  });
 
   @override
   State<PatientNotificationsSection> createState() =>
@@ -20,10 +28,7 @@ class _PatientNotificationsSectionState
     with TickerProviderStateMixin {
   int _activeIndex = 0;
   final ScrollController _scrollController = ScrollController();
-  final List<GlobalKey> _tileKeys = List.generate(
-    patientNotifications.length,
-    (_) => GlobalKey(),
-  );
+  late final List<GlobalKey> _tileKeys;
 
   late final AnimationController _joystickController;
   late final Animation<Offset> _joystickAnimation;
@@ -31,6 +36,8 @@ class _PatientNotificationsSectionState
   @override
   void initState() {
     super.initState();
+
+    _tileKeys = List.generate(widget.blocks.length, (_) => GlobalKey());
 
     _joystickController = AnimationController(
       vsync: this,
@@ -51,7 +58,6 @@ class _PatientNotificationsSectionState
       } else {
         _joystickController.reverse();
       }
-      setState(() {});
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -61,29 +67,44 @@ class _PatientNotificationsSectionState
     });
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _joystickController.dispose();
-    super.dispose();
-  }
-
   void _selectTile(int newIndex) {
-    if (newIndex < 0 || newIndex >= patientNotifications.length) return;
+    if (newIndex < 0 || newIndex >= widget.blocks.length) return;
+
     setState(() => _activeIndex = newIndex);
-    widget.onTileSelected(patientNotifications[newIndex]['label']!);
+    widget.onTileSelected(widget.blocks[newIndex].label);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final context = _tileKeys[newIndex].currentContext;
-      if (context != null) {
+      final ctx = _tileKeys[newIndex].currentContext;
+      if (ctx != null) {
         Scrollable.ensureVisible(
-          context,
+          ctx,
           duration: const Duration(milliseconds: 400),
           curve: Curves.easeInOutCubic,
           alignment: 0.5,
         );
       }
     });
+  }
+
+  Future<void> _sendNotification(String label) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final userDoc =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+    final patientName = userDoc.data()?['name'] ?? 'Onbekend';
+
+    await NotificationsService().sendNotificationToLinkedCaregivers(
+      patientUid: user.uid,
+      patientName: patientName,
+      label: label,
+    );
+
+    debugPrint("📨 Verstuurd: $label");
   }
 
   void _moveSelection(String direction) {
@@ -93,27 +114,28 @@ class _PatientNotificationsSectionState
     switch (direction) {
       case 'up':
         newIndex -= columns;
-        if (newIndex < 0) newIndex = patientNotifications.length - 1;
         break;
       case 'down':
         newIndex += columns;
-        if (newIndex >= patientNotifications.length) newIndex = 0;
         break;
       case 'left':
         newIndex--;
-        if (newIndex < 0) newIndex = patientNotifications.length - 1;
         break;
       case 'right':
         newIndex++;
-        if (newIndex >= patientNotifications.length) newIndex = 0;
         break;
     }
+
+    if (newIndex < 0) newIndex = widget.blocks.length - 1;
+    if (newIndex >= widget.blocks.length) newIndex = 0;
 
     _selectTile(newIndex);
   }
 
   @override
   Widget build(BuildContext context) {
+    final blocks = widget.blocks;
+
     final width = MediaQuery.of(context).size.width;
 
     final double ipadWidth = (width * 0.8).clamp(300, 380);
@@ -180,18 +202,25 @@ class _PatientNotificationsSectionState
                         crossAxisSpacing: spacing,
                         childAspectRatio: tileWidth / tileHeight,
                       ),
-                      itemCount: patientNotifications.length,
+                      itemCount: blocks.length,
                       itemBuilder: (context, index) {
-                        final block = patientNotifications[index];
-                        return NotificationBlock(
-                          key: _tileKeys[index],
-                          label: block['label']!,
-                          imagePath: block['image']!,
-                          isActive: index == _activeIndex,
-                          onSelect: () => _selectTile(index),
-                          customWidth: tileWidth,
-                          customHeight: tileHeight,
-                          customIconSize: iconSize,
+                        final block = blocks[index];
+
+                        return GestureDetector(
+                          onDoubleTap: () async {
+                            await _sendNotification(block.label);
+                          },
+                          child: NotificationBlock(
+                            key: _tileKeys[index],
+                            label: block.label,
+                            imagePath: block.image,
+                            isLocalAsset: block.isLocalAsset,
+                            isActive: index == _activeIndex,
+                            onSelect: () => _selectTile(index),
+                            customWidth: tileWidth,
+                            customHeight: tileHeight,
+                            customIconSize: iconSize,
+                          ),
                         );
                       },
                     ),
@@ -210,10 +239,9 @@ class _PatientNotificationsSectionState
                     onDown: () => _moveSelection('down'),
                     onLeft: () => _moveSelection('left'),
                     onRight: () => _moveSelection('right'),
-                    onOk: () {
-                      debugPrint(
-                        "OK pressed on ${patientNotifications[_activeIndex]['label']}",
-                      );
+                    onOk: () async {
+                      final selected = blocks[_activeIndex];
+                      await _sendNotification(selected.label);
                     },
                   ),
                 ),

@@ -1,0 +1,74 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:care_link/core/firestore/models/notification_item.dart';
+import 'package:care_link/core/firestore/models/received_notification.dart';
+
+class NotificationsService {
+  final _db = FirebaseFirestore.instance;
+
+  /// Realtime notificaties voor mantelzorger (kan, maar je gebruikt vooral de aparte service)
+  Stream<List<ReceivedNotification>> watchReceivedNotifications(
+    String caregiverUid,
+  ) {
+    return _db
+        .collection('users')
+        .doc(caregiverUid)
+        .collection('received_notifications')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snap) =>
+              snap.docs
+                  .map((doc) => ReceivedNotification.fromFirestore(doc))
+                  .toList(),
+        );
+  }
+
+  /// Notificatieblokken voor patiënt (de 3x3 grid)
+  Future<List<NotificationItem>> fetchNotificationBlocks() async {
+    final snap = await _db.collection('notifications').orderBy('order').get();
+
+    return snap.docs
+        .map((doc) => NotificationItem.fromMap(doc.id, doc.data()))
+        .toList();
+  }
+
+  /// Verstuur melding naar alle gekoppelde mantelzorgers
+  Future<void> sendNotificationToLinkedCaregivers({
+    required String patientUid,
+    required String patientName,
+    required String label,
+  }) async {
+    final userDoc = await _db.collection('users').doc(patientUid).get();
+    if (!userDoc.exists) return;
+
+    final data = userDoc.data()!;
+    final linkedIds = List<String>.from(data['linkedUserIds'] ?? []);
+
+    for (final caregiverUid in linkedIds) {
+      await _db
+          .collection('users')
+          .doc(caregiverUid)
+          .collection('received_notifications')
+          .add({
+            'caregiverUid': caregiverUid,
+            'patientUid': patientUid,
+            'receivedLabel': label,
+            'createdAt': FieldValue.serverTimestamp(),
+            'userName': patientName,
+          });
+    }
+  }
+
+  /// Mantelzorger verwijdert notificatie
+  Future<void> deleteReceivedNotification({
+    required String caregiverUid,
+    required String notificationId,
+  }) {
+    return _db
+        .collection('users')
+        .doc(caregiverUid)
+        .collection('received_notifications')
+        .doc(notificationId)
+        .delete();
+  }
+}

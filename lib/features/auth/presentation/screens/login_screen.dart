@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:care_link/core/utils/dialog_utils.dart';
+import 'package:care_link/features/auth/data/services/auth_flow_service.dart';
 import 'package:flutter/material.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:go_router/go_router.dart';
@@ -44,9 +45,15 @@ class LoginScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       onTap: () async {
                         final user = await AuthService().signInWithGoogle();
+
                         if (user != null) {
                           print('✅ Ingelogd als ${user.displayName}');
-                          if (context.mounted) context.go('/prehome');
+
+                          final nextRoute =
+                              await AuthFlowService()
+                                  .resolveNextRoute(); // ⬅️ hier gebeurt de magie
+
+                          if (context.mounted) context.go(nextRoute);
                         } else {
                           await showCareLinkErrorDialog(
                             context,

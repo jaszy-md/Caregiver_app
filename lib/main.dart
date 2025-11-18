@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'core/services/firebase/firebase_initializer.dart';
+import 'core/firebase/firebase_initializer.dart';
 import 'app/app.dart';
 
 Future<void> main() async {
