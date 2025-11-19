@@ -20,7 +20,9 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
     with TickerProviderStateMixin {
   late final AnimationController _weekTileController;
   Animation<Offset>? _weekTileAnimation;
-  late final AnimationController _tileController;
+
+  // Houd animatiestatus per tile bij
+  final Map<String, AnimationController> _tileControllers = {};
 
   @override
   void initState() {
@@ -38,21 +40,17 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
       CurvedAnimation(parent: _weekTileController, curve: Curves.easeOutCubic),
     );
 
-    _tileController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _weekTileController.forward(from: 0);
-      if (mounted) _tileController.forward(from: 0);
     });
   }
 
   @override
   void dispose() {
+    for (var ctrl in _tileControllers.values) {
+      ctrl.dispose();
+    }
     _weekTileController.dispose();
-    _tileController.dispose();
     super.dispose();
   }
 
@@ -86,6 +84,7 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
           const LineDotTitle(title: 'Welkom!'),
           const SizedBox(height: 15),
 
+          // week tile animatie
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -103,21 +102,15 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
                   ),
                 ),
               ),
-              if (_weekTileAnimation != null)
-                SlideTransition(
-                  position: _weekTileAnimation!,
-                  child: const WeekStateTile(),
-                )
-              else
-                const WeekStateTile(),
+              SlideTransition(
+                position: _weekTileAnimation!,
+                child: const WeekStateTile(),
+              ),
             ],
           ),
 
           const SizedBox(height: 10),
-
-          // Titeltegel – nu zonder fake onTap
           const NotificationTitleTile(label: 'Notificaties'),
-
           const SizedBox(height: 3),
 
           Expanded(
@@ -155,11 +148,7 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
                     );
                   }
 
-                  return _buildNotificationsList(
-                    context: context,
-                    items: items,
-                    caregiverUid: caregiverUid,
-                  );
+                  return _buildList(items, caregiverUid);
                 },
               ),
             ),
@@ -169,70 +158,71 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
     );
   }
 
-  Widget _buildNotificationsList({
-    required BuildContext context,
-    required List<ReceivedNotification> items,
-    required String caregiverUid,
-  }) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight + 30),
-            child: ListView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              clipBehavior: Clip.none,
-              itemCount: items.length,
-              padding: const EdgeInsets.only(
-                top: 3,
-                bottom: 20,
-                left: 5,
-                right: 5,
-              ),
-              itemBuilder: (context, index) {
-                final item = items[index];
+  Widget _buildList(List<ReceivedNotification> items, String caregiverUid) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        children:
+            items.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
 
-                final tileAnimation = Tween<Offset>(
-                  begin: const Offset(0, -1),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: _tileController,
-                    curve: Interval(
-                      0.1 * index,
-                      0.6 + 0.1 * index,
-                      curve: Curves.easeOutCubic,
-                    ),
-                  ),
+              // Controller per tile, alleen bij nieuwe tile maken
+              if (!_tileControllers.containsKey(item.id)) {
+                final ctrl = AnimationController(
+                  vsync: this,
+                  duration: Duration(milliseconds: 650),
                 );
+                _tileControllers[item.id] = ctrl;
 
-                return SlideTransition(
-                  position: tileAnimation,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned.fill(
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 9),
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(
-                              255,
-                              133,
-                              26,
-                              17,
-                            ).withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(15),
+                // animatie start direct bij nieuwe item
+                ctrl.forward(from: 0);
+              }
+
+              final ctrl = _tileControllers[item.id]!;
+
+              final animation = Tween<Offset>(
+                begin: const Offset(0, -0.4),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: ctrl, curve: Curves.easeOutCubic),
+              );
+
+              final fade = CurvedAnimation(parent: ctrl, curve: Curves.easeOut);
+
+              return SlideTransition(
+                position: animation,
+                child: FadeTransition(
+                  opacity: fade,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 7,
+                    ),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned.fill(
+                          child: Container(
+                            height: 58, // exact zo groot als tile
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(
+                                255,
+                                133,
+                                26,
+                                17,
+                              ).withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20),
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
                           ),
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20),
-                          child: const Icon(Icons.delete, color: Colors.white),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Dismissible(
+                        Dismissible(
                           key: Key(item.id),
                           direction: DismissDirection.endToStart,
                           onDismissed: (_) async {
@@ -248,15 +238,13 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
                             receivedAt: item.createdAt,
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
-          ),
-        );
-      },
+                ),
+              );
+            }).toList(),
+      ),
     );
   }
 }
