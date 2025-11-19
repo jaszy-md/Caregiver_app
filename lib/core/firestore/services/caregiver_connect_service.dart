@@ -5,7 +5,6 @@ class CaregiverConnectService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final UserLinkService _linkService = UserLinkService();
 
-  /// Verbind patiënt met mantelzorger via userID code
   Future<String?> connectCaregiverByCode(String patientUid, String code) async {
     code = code.trim().toUpperCase();
 
@@ -13,7 +12,6 @@ class CaregiverConnectService {
       return "Vul een mantelzorger-ID in.";
     }
 
-    // Zoek gebruiker met deze zichtbare code
     final query =
         await _db
             .collection('users')
@@ -25,24 +23,20 @@ class CaregiverConnectService {
       return "Geen mantelzorger gevonden met deze code.";
     }
 
-    final caregiverDoc = query.docs.first;
-    final caregiverUid = caregiverDoc.id;
+    final caregiverUid = query.docs.first.id;
 
-    // Zelf-koppelen voorkomen
     if (caregiverUid == patientUid) {
       return "Je kunt jezelf niet koppelen.";
     }
 
-    // Koppeling uitvoeren
     await _linkService.linkUsers(
       patientUid: patientUid,
       caregiverUid: caregiverUid,
     );
 
-    return null; // Succes
+    return null;
   }
 
-  /// Realtime gekoppelde gebruikers ophalen
   Stream<List<Map<String, dynamic>>> watchLinkedUsers(String uid) {
     return _db.collection('users').doc(uid).snapshots().asyncMap((snap) async {
       final data = snap.data();
@@ -57,7 +51,7 @@ class CaregiverConnectService {
         final userDoc = await _db.collection('users').doc(id).get();
         if (userDoc.exists) {
           final d = userDoc.data()!;
-          d['uid'] = userDoc.id;
+          d['uid'] = id;
           result.add(d);
         }
       }

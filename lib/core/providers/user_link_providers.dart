@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:care_link/core/services/firebase/user_link_service.dart';
+import 'package:care_link/core/firestore/services/user_link_service.dart';
 
-final userLinkServiceProvider = Provider((ref) => UserLinkService());
+final userLinkServiceProvider = Provider<UserLinkService>((ref) {
+  return UserLinkService();
+});

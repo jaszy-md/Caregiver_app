@@ -8,6 +8,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class PrehomeScreen extends ConsumerWidget {
   const PrehomeScreen({super.key});
 
+  void _log(String msg) {
+    debugPrint("🟩 PREHOME: $msg");
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Stack(
@@ -16,6 +20,7 @@ class PrehomeScreen extends ConsumerWidget {
           alignment: Alignment.bottomCenter,
           child: Assets.images.together.image(fit: BoxFit.contain),
         ),
+
         Column(
           children: [
             const SizedBox(height: 30),
@@ -36,30 +41,51 @@ class PrehomeScreen extends ConsumerWidget {
                 fit: BoxFit.contain,
               ),
             ),
+
             const SizedBox(height: 60),
 
-            // PATIËNT
+            // PATIËNT KNOP
             MainBtn(
               text: 'Zorgbehoevende',
               color: MainBtnColor.darkGreen,
               onTap: () async {
-                await ref.read(setUserRoleProvider('patient').future);
-                if (context.mounted) {
-                  context.go('/patienthome');
+                _log("Klik op PATIENT knop");
+
+                try {
+                  _log("Start role update -> 'patient'");
+                  await ref.read(setUserRoleProvider('patient').future);
+                  _log("Rol opgeslagen: patient");
+
+                  if (context.mounted) {
+                    _log("Navigeren naar /patienthome");
+                    context.go('/patienthome');
+                  }
+                } catch (e) {
+                  _log("❌ ERROR bij opslaan patient rol: $e");
                 }
               },
             ),
 
             const SizedBox(height: 20),
 
-            // MANTELZORGER
+            // MANTELZORGER KNOP
             MainBtn(
               text: 'Mantelzorger',
               color: MainBtnColor.lightGreen,
               onTap: () async {
-                await ref.read(setUserRoleProvider('caregiver').future);
-                if (context.mounted) {
-                  context.go('/caregiverhome');
+                _log("Klik op CAREGIVER knop");
+
+                try {
+                  _log("Start role update -> 'caregiver'");
+                  await ref.read(setUserRoleProvider('caregiver').future);
+                  _log("Rol opgeslagen: caregiver");
+
+                  if (context.mounted) {
+                    _log("Navigeren naar /caregiverhome");
+                    context.go('/caregiverhome');
+                  }
+                } catch (e) {
+                  _log("❌ ERROR bij opslaan caregiver rol: $e");
                 }
               },
             ),
