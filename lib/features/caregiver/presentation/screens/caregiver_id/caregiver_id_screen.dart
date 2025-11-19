@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:care_link/gen/assets.gen.dart';
-import 'package:care_link/core/providers/user_providers.dart';
+import 'package:care_link/core/riverpod_providers/user_providers.dart';
 
 class CaregiverIdScreen extends ConsumerStatefulWidget {
   const CaregiverIdScreen({super.key});

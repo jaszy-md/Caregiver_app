@@ -36,7 +36,11 @@ class _PatientNotificationsSectionState
   @override
   void initState() {
     super.initState();
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.blocks.isNotEmpty) {
+        widget.onTileSelected(widget.blocks.first.label);
+      }
+    });
     _tileKeys = List.generate(widget.blocks.length, (_) => GlobalKey());
 
     _joystickController = AnimationController(

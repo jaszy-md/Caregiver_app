@@ -1,5 +1,5 @@
 import 'package:care_link/core/firestore/models/received_notification.dart';
-import 'package:care_link/core/providers/received_notifications_providers.dart';
+import 'package:care_link/core/riverpod_providers/received_notifications_providers.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_tile.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_title_tile.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/tiles/week-state-tile.dart';

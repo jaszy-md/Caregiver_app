@@ -1,4 +1,4 @@
-import 'package:care_link/core/providers/user_providers.dart';
+import 'package:care_link/core/riverpod_providers/user_providers.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:care_link/features/shared/presentation/widgets/buttons/main_btn.dart';
 import 'package:flutter/material.dart';

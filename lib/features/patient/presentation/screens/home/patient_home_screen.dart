@@ -1,4 +1,4 @@
-import 'package:care_link/core/providers/notifications_providers.dart';
+import 'package:care_link/core/riverpod_providers/notifications_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:care_link/gen/assets.gen.dart';
@@ -33,6 +33,14 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen>
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, st) => Center(child: Text('Fout bij laden: $e')),
       data: (blocks) {
+        if (_selectedText.isEmpty && blocks.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() => _selectedText = blocks.first.label);
+            }
+          });
+        }
+
         return SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
