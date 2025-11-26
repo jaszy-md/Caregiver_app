@@ -1,3 +1,4 @@
+import 'package:care_link/features/patient/presentation/widgets/dialogs/qr_scanner_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:care_link/features/shared/presentation/widgets/tiles/line_dot_title.dart';
 import 'package:care_link/features/patient/presentation/widgets/tiles/connect_step_tile.dart';
@@ -23,6 +24,7 @@ class ConnectScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 5),
+
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -52,33 +54,46 @@ class ConnectScreen extends StatelessWidget {
                 ),
               ],
             ),
+
             const SizedBox(height: 20),
+
             Stack(
               clipBehavior: Clip.none,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    ConnectStepTile(
+                  children: [
+                    const ConnectStepTile(
                       number: '1',
                       text: 'Pak de bijbehorende folder',
                     ),
-                    ConnectStepTile(
+                    const ConnectStepTile(
                       number: '2',
                       text: 'Klik hier op dit icoon',
                     ),
+
+                    // enkel dit is aangepast
                     ConnectStepTile(
                       number: '3',
                       text: 'Scan de QR-code hier',
                       icon: Icons.qr_code_scanner,
                       showArrow: true,
+                      onTap: () async {
+                        await showDialog(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (_) => const QrScannerDialog(),
+                        );
+                      },
                     ),
-                    ConnectStepTile(
+
+                    const ConnectStepTile(
                       number: '4',
                       text: 'De ketting is verbonden!',
                     ),
                   ],
                 ),
+
                 Positioned(
                   top: size.height * 0.146,
                   right: 20,
@@ -90,6 +105,7 @@ class ConnectScreen extends StatelessWidget {
                 ),
               ],
             ),
+
             const SizedBox(height: 25),
             const LineDotTitle(title: 'Connect Mantelzorger'),
             const SizedBox(height: 25),

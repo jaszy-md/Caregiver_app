@@ -35,7 +35,7 @@ class LoginScreen extends StatelessWidget {
                 children: [
                   Assets.images.logoGreenSlogan.image(
                     height: 80,
-                    width: 248,
+                    width: 247,
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 20),
@@ -50,8 +50,7 @@ class LoginScreen extends StatelessWidget {
                           print('✅ Ingelogd als ${user.displayName}');
 
                           final nextRoute =
-                              await AuthFlowService()
-                                  .resolveNextRoute(); // ⬅️ hier gebeurt de magie
+                              await AuthFlowService().resolveNextRoute();
 
                           if (context.mounted) context.go(nextRoute);
                         } else {
