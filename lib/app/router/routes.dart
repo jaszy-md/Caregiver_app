@@ -35,10 +35,9 @@ CustomTransitionPage instantScreen(Widget child) {
   );
 }
 
-// Zelfde route-lijsten als je oude setup
+// Alleen EXCLUSIEVE routes bepalen context
 final caregiverRoutes = <String>[
   '/caregiverhome',
-  '/stats',
   '/caregiverprofile',
   '/caregiver_id',
 ];
@@ -50,10 +49,9 @@ final patientRoutes = <String>[
   '/connect',
 ];
 
-// Onthouden vanaf welke “kant” je in de help-guide komt
+// Onthoudt de laatst bekende context
 String? _lastSection;
 
-/// De globale routes-lijst die AppRouter gebruikt
 final appRoutes = <RouteBase>[
   // Splash buiten de Shell
   GoRoute(
@@ -69,30 +67,23 @@ final appRoutes = <RouteBase>[
       Widget? footer;
       Widget? subHeader;
 
-      // Caregiver routes → caregiver footer + subheader
+      // Context alleen aanpassen bij exclusieve routes
       if (caregiverRoutes.any((r) => uri.startsWith(r))) {
         _lastSection = 'caregiver';
+      } else if (patientRoutes.any((r) => uri.startsWith(r))) {
+        _lastSection = 'patient';
+      }
+
+      // Footer + subheader volgen de laatst bekende context
+      if (_lastSection == 'caregiver') {
         footer = const CaregiverFooter();
         subHeader = const CaregiverSubHeader();
-      }
-      // Patient routes → patient footer + subheader
-      else if (patientRoutes.any((r) => uri.startsWith(r))) {
-        _lastSection = 'patient';
+      } else if (_lastSection == 'patient') {
         footer = const PatientFooter();
         subHeader = const PatientSubHeader();
       }
-      // Help-guide krijgt de footer van de laatst bezochte sectie
-      else if (uri.startsWith('/help_guide')) {
-        if (_lastSection == 'caregiver') {
-          footer = const CaregiverFooter();
-          subHeader = const CaregiverSubHeader();
-        } else if (_lastSection == 'patient') {
-          footer = const PatientFooter();
-          subHeader = const PatientSubHeader();
-        }
-      }
 
-      // Login geen header, geen footer
+      // Login: geen header, geen footer
       if (uri.startsWith('/login')) {
         return MainLayout(
           showHeader: false,
@@ -102,7 +93,7 @@ final appRoutes = <RouteBase>[
         );
       }
 
-      // Prehome wel header, geen footer
+      // Prehome: header wel, footer niet
       if (uri.startsWith('/prehome')) {
         return MainLayout(
           showHeader: true,
@@ -112,7 +103,7 @@ final appRoutes = <RouteBase>[
         );
       }
 
-      // Alle andere normale layout
+      // Alle andere routes
       return MainLayout(
         showHeader: true,
         subHeader: subHeader,
@@ -145,10 +136,6 @@ final appRoutes = <RouteBase>[
         path: '/caregiver_id',
         pageBuilder: (c, s) => instantScreen(const CaregiverIdScreen()),
       ),
-      GoRoute(
-        path: '/stats',
-        pageBuilder: (c, s) => instantScreen(const StatsScreen()),
-      ),
 
       // PATIENT
       GoRoute(
@@ -169,6 +156,10 @@ final appRoutes = <RouteBase>[
       ),
 
       // SHARED
+      GoRoute(
+        path: '/stats',
+        pageBuilder: (c, s) => instantScreen(const StatsScreen()),
+      ),
       GoRoute(
         path: '/help_guide',
         pageBuilder: (c, s) => instantScreen(const HelpGuideScreen()),

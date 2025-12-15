@@ -139,20 +139,26 @@ class _PatientNotificationsSectionState
   @override
   Widget build(BuildContext context) {
     final blocks = widget.blocks;
-
     final width = MediaQuery.of(context).size.width;
 
-    final double ipadWidth = (width * 0.8).clamp(300, 380);
-    final double ipadHeight = ipadWidth * 1.255;
-    final double horizontalPadding = ipadWidth * 0.135;
-    final double verticalPadding = ipadHeight * 0.151;
-    final double spacing = ipadWidth * 0.02;
+    // 🔧 IETS GROTERE CONTAINER
+    final double ipadWidth = (width * 0.86).clamp(330, 410);
+    final double ipadHeight = ipadWidth * 1.24;
+
+    // 🔧 IETS MINDER PADDING
+    final double horizontalPadding = ipadWidth * 0.12;
+    final double verticalPadding = ipadHeight * 0.145;
+
+    final double spacing = ipadWidth * 0.022;
     final double gridWidth = ipadWidth - (horizontalPadding * 2);
+
+    // 🔧 GROTERE BLOKKEN
     final double tileWidth = (gridWidth - spacing * 2) / 3;
-    final double tileHeight = tileWidth * 0.8;
-    final double iconSize = tileWidth * 0.55;
+    final double tileHeight = tileWidth * 0.82;
+    final double iconSize = tileWidth * 0.6;
+
     final double ipadImageScale =
-        width < 380 ? 1.12 : (width < 430 ? 1.06 : 1.0);
+        width < 380 ? 1.14 : (width < 430 ? 1.08 : 1.03);
 
     return RepaintBoundary(
       child: Center(
@@ -169,7 +175,7 @@ class _PatientNotificationsSectionState
             ),
 
             Positioned(
-              top: verticalPadding - 30,
+              top: verticalPadding - 32,
               left: 0,
               right: 0,
               child: const Text(
@@ -235,7 +241,7 @@ class _PatientNotificationsSectionState
 
             if (JoystickController().active)
               Positioned(
-                bottom: 5,
+                bottom: 6,
                 child: SlideTransition(
                   position: _joystickAnimation,
                   child: JoystickButton(

@@ -14,9 +14,17 @@ import 'package:flutter/widgets.dart';
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
+  /// File path: assets/images/Mask group.png
+  AssetGenImage get maskGroup =>
+      const AssetGenImage('assets/images/Mask group.png');
+
   /// File path: assets/images/Notification.png
   AssetGenImage get notification =>
       const AssetGenImage('assets/images/Notification.png');
+
+  /// File path: assets/images/app-icon.png
+  AssetGenImage get appIcon =>
+      const AssetGenImage('assets/images/app-icon.png');
 
   /// File path: assets/images/arrow-health-check.png
   AssetGenImage get arrowHealthCheck =>
@@ -32,6 +40,10 @@ class $AssetsImagesGen {
 
   /// File path: assets/images/arrow.png
   AssetGenImage get arrow => const AssetGenImage('assets/images/arrow.png');
+
+  /// File path: assets/images/call-block.png
+  AssetGenImage get callBlock =>
+      const AssetGenImage('assets/images/call-block.png');
 
   /// File path: assets/images/call-caregiver.png
   AssetGenImage get callCaregiver =>
@@ -61,6 +73,14 @@ class $AssetsImagesGen {
   AssetGenImage get dotLine =>
       const AssetGenImage('assets/images/dot-line.png');
 
+  /// File path: assets/images/dress-block.png
+  AssetGenImage get dressBlock =>
+      const AssetGenImage('assets/images/dress-block.png');
+
+  /// File path: assets/images/drink-block.png
+  AssetGenImage get drinkBlock =>
+      const AssetGenImage('assets/images/drink-block.png');
+
   /// File path: assets/images/drink.png
   AssetGenImage get drink => const AssetGenImage('assets/images/drink.png');
 
@@ -81,11 +101,22 @@ class $AssetsImagesGen {
   AssetGenImage get graphUp =>
       const AssetGenImage('assets/images/graph-up.png');
 
+  /// File path: assets/images/hug-block.png
+  AssetGenImage get hugBlock =>
+      const AssetGenImage('assets/images/hug-block.png');
+
+  /// File path: assets/images/icon.png
+  AssetGenImage get icon => const AssetGenImage('assets/images/icon.png');
+
   /// File path: assets/images/id-icon.png
   AssetGenImage get idIcon => const AssetGenImage('assets/images/id-icon.png');
 
   /// File path: assets/images/ipad.png
   AssetGenImage get ipad => const AssetGenImage('assets/images/ipad.png');
+
+  /// File path: assets/images/jacketon-block.png
+  AssetGenImage get jacketonBlock =>
+      const AssetGenImage('assets/images/jacketon-block.png');
 
   /// File path: assets/images/joystick.png
   AssetGenImage get joystick =>
@@ -102,9 +133,17 @@ class $AssetsImagesGen {
   AssetGenImage get loginBackground2 =>
       const AssetGenImage('assets/images/login-background-2.png');
 
+  /// File path: assets/images/login-background-3.png
+  AssetGenImage get loginBackground3 =>
+      const AssetGenImage('assets/images/login-background-3.png');
+
   /// File path: assets/images/login-background.png
   AssetGenImage get loginBackground =>
       const AssetGenImage('assets/images/login-background.png');
+
+  /// File path: assets/images/login-green.png
+  AssetGenImage get loginGreen =>
+      const AssetGenImage('assets/images/login-green.png');
 
   /// File path: assets/images/login-shape.png
   AssetGenImage get loginShape =>
@@ -126,6 +165,10 @@ class $AssetsImagesGen {
   AssetGenImage get logoWit =>
       const AssetGenImage('assets/images/logo-wit.png');
 
+  /// File path: assets/images/love-block.png
+  AssetGenImage get loveBlock =>
+      const AssetGenImage('assets/images/love-block.png');
+
   /// File path: assets/images/no_internet.png
   AssetGenImage get noInternet =>
       const AssetGenImage('assets/images/no_internet.png');
@@ -133,6 +176,10 @@ class $AssetsImagesGen {
   /// File path: assets/images/note-cloud.png
   AssetGenImage get noteCloud =>
       const AssetGenImage('assets/images/note-cloud.png');
+
+  /// File path: assets/images/outside-block.png
+  AssetGenImage get outsideBlock =>
+      const AssetGenImage('assets/images/outside-block.png');
 
   /// File path: assets/images/profile-img.png
   AssetGenImage get profileImg =>
@@ -144,6 +191,10 @@ class $AssetsImagesGen {
   /// File path: assets/images/question-cloud-icon.png
   AssetGenImage get questionCloudIcon =>
       const AssetGenImage('assets/images/question-cloud-icon.png');
+
+  /// File path: assets/images/sleep-block.png
+  AssetGenImage get sleepBlock =>
+      const AssetGenImage('assets/images/sleep-block.png');
 
   /// File path: assets/images/sleep.png
   AssetGenImage get sleep => const AssetGenImage('assets/images/sleep.png');
@@ -171,16 +222,23 @@ class $AssetsImagesGen {
   /// File path: assets/images/walk.png
   AssetGenImage get walk => const AssetGenImage('assets/images/walk.png');
 
+  /// File path: assets/images/walking-block.png
+  AssetGenImage get walkingBlock =>
+      const AssetGenImage('assets/images/walking-block.png');
+
   /// File path: assets/images/wc.png
   AssetGenImage get wc => const AssetGenImage('assets/images/wc.png');
 
   /// List of all assets
   List<AssetGenImage> get values => [
+    maskGroup,
     notification,
+    appIcon,
     arrowHealthCheck,
     arrowJoystick,
     arrowLogin,
     arrow,
+    callBlock,
     callCaregiver,
     caregiverConnect,
     caregiverId,
@@ -188,29 +246,39 @@ class $AssetsImagesGen {
     connectIcon,
     connectMantelzorger,
     dotLine,
+    dressBlock,
+    drinkBlock,
     drink,
     eat,
     flashIcon,
     flyer,
     google,
     graphUp,
+    hugBlock,
+    icon,
     idIcon,
     ipad,
+    jacketonBlock,
     joystick,
     kettingHeel,
     ketting,
     loginBackground2,
+    loginBackground3,
     loginBackground,
+    loginGreen,
     loginShape,
     logoGreenSlogan,
     logoHeart,
     logoWitFade,
     logoWit,
+    loveBlock,
     noInternet,
     noteCloud,
+    outsideBlock,
     profileImg,
     punaise,
     questionCloudIcon,
+    sleepBlock,
     sleep,
     statsIcon,
     statusWidget2,
@@ -218,6 +286,7 @@ class $AssetsImagesGen {
     together,
     topbar2,
     walk,
+    walkingBlock,
     wc,
   ];
 }

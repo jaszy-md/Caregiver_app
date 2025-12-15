@@ -42,11 +42,11 @@ dev_dependencies:
   build_runner: ^2.9.0
 
 flutter_launcher_icons:
-    android: true
-    ios: true
-    image_path: "assets/images/flash-icon.png"
-    adaptive_icon_foreground: "assets/images/flash-icon.png"
-    adaptive_icon_background: "#ffffff"
+  android: true
+  ios: true
+  image_path: "assets/images/app-icon.png"
+  adaptive_icon_foreground: "assets/images/app-icon.png"
+  adaptive_icon_background: "#ffffff"
 
 flutter:
 

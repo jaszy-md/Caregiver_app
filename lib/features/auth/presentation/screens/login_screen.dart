@@ -20,11 +20,9 @@ class LoginScreen extends StatelessWidget {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Assets.images.loginBackground2.image(fit: BoxFit.cover),
+              child: Assets.images.loginBackground3.image(fit: BoxFit.cover),
             ),
-            Positioned.fill(
-              child: Assets.images.loginShape.image(fit: BoxFit.cover),
-            ),
+
             Positioned(
               bottom: 70,
               left: 0,
@@ -33,12 +31,12 @@ class LoginScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Assets.images.logoGreenSlogan.image(
+                  Assets.images.loginGreen.image(
                     height: 80,
                     width: 247,
                     fit: BoxFit.contain,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -87,28 +85,7 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Transform.rotate(
-                    angle: -2.72 * math.pi / 180,
-                    child: const Text(
-                      'Log hier gemakkelijk in met jouw Google account!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'JustMeAgainDownHere',
-                        fontSize: 22,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
                 ],
-              ),
-            ),
-            Positioned(
-              bottom: 100,
-              left: 20,
-              child: Assets.images.arrowLogin.image(
-                height: 56,
-                width: 56,
-                fit: BoxFit.contain,
               ),
             ),
           ],

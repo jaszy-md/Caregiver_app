@@ -27,10 +27,13 @@ class NotificationBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double width = customWidth ?? 70;
-    final double height = customHeight ?? 55;
+    // 🔥 DUIDELIJK GROTER
+    final double width = customWidth ?? 92;
+    final double height = customHeight ?? 76;
+
+    // 🔥 ICON VULT BIJNA HELE BLOK
     final double iconSize =
-        customIconSize ?? (width < height ? width * 0.75 : height * 0.75);
+        customIconSize ?? (width < height ? width * 0.88 : height * 0.88);
 
     final Widget img =
         isLocalAsset
@@ -48,27 +51,35 @@ class NotificationBlock extends StatelessWidget {
             );
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onSelect,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,
         width: width,
         height: height,
-        margin: const EdgeInsets.all(4),
+
+        // 🔥 MINIMALE MARGES → MEER BREEDTE
+        margin: const EdgeInsets.symmetric(horizontal: 1.5, vertical: 2),
+
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+
+          // 🔥 IETS PLATTER = BREDER OOGT
+          borderRadius: BorderRadius.circular(8),
+
           border: Border.all(
             color: isActive ? activeColor : Colors.black,
-            width: isActive ? 3 : 1.5,
+            width: isActive ? 3.2 : 1.4,
           ),
+
           boxShadow:
               isActive
                   ? [
                     BoxShadow(
                       color: activeColor.withOpacity(0.45),
-                      blurRadius: 8,
-                      spreadRadius: 1,
+                      blurRadius: 9,
+                      spreadRadius: 1.2,
                     ),
                   ]
                   : [],
