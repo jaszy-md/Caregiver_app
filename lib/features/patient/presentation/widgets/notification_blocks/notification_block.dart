@@ -27,11 +27,8 @@ class NotificationBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🔥 DUIDELIJK GROTER
     final double width = customWidth ?? 92;
     final double height = customHeight ?? 76;
-
-    // 🔥 ICON VULT BIJNA HELE BLOK
     final double iconSize =
         customIconSize ?? (width < height ? width * 0.88 : height * 0.88);
 
@@ -59,13 +56,11 @@ class NotificationBlock extends StatelessWidget {
         width: width,
         height: height,
 
-        // 🔥 MINIMALE MARGES → MEER BREEDTE
         margin: const EdgeInsets.symmetric(horizontal: 1.5, vertical: 2),
 
         decoration: BoxDecoration(
           color: Colors.white,
 
-          // 🔥 IETS PLATTER = BREDER OOGT
           borderRadius: BorderRadius.circular(8),
 
           border: Border.all(
