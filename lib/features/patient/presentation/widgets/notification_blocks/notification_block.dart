@@ -51,7 +51,7 @@ class NotificationBlock extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onSelect,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
+        duration: Duration.zero,
         curve: Curves.easeOut,
         width: width,
         height: height,

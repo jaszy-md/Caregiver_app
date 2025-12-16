@@ -11,11 +11,13 @@ import 'package:care_link/features/patient/presentation/widgets/notification_blo
 class PatientNotificationsSection extends StatefulWidget {
   final List<NotificationItem> blocks;
   final ValueChanged<String> onTileSelected;
+  final VoidCallback onNotificationSent;
 
   const PatientNotificationsSection({
     super.key,
     required this.blocks,
     required this.onTileSelected,
+    required this.onNotificationSent,
   });
 
   @override
@@ -36,11 +38,13 @@ class _PatientNotificationsSectionState
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.blocks.isNotEmpty) {
         widget.onTileSelected(widget.blocks.first.label);
       }
     });
+
     _tileKeys = List.generate(widget.blocks.length, (_) => GlobalKey());
 
     _joystickController = AnimationController(
@@ -82,7 +86,7 @@ class _PatientNotificationsSectionState
       if (ctx != null) {
         Scrollable.ensureVisible(
           ctx,
-          duration: const Duration(milliseconds: 400),
+          duration: Duration.zero,
           curve: Curves.easeInOutCubic,
           alignment: 0.5,
         );
@@ -107,6 +111,8 @@ class _PatientNotificationsSectionState
       patientName: patientName,
       label: label,
     );
+
+    widget.onNotificationSent();
 
     debugPrint("📨 Verstuurd: $label");
   }
@@ -141,18 +147,15 @@ class _PatientNotificationsSectionState
     final blocks = widget.blocks;
     final width = MediaQuery.of(context).size.width;
 
-    // 🔧 IETS GROTERE CONTAINER
     final double ipadWidth = (width * 0.86).clamp(330, 410);
     final double ipadHeight = ipadWidth * 1.24;
 
-    // 🔧 IETS MINDER PADDING
     final double horizontalPadding = ipadWidth * 0.12;
     final double verticalPadding = ipadHeight * 0.145;
 
     final double spacing = ipadWidth * 0.022;
     final double gridWidth = ipadWidth - (horizontalPadding * 2);
 
-    // 🔧 GROTERE BLOKKEN
     final double tileWidth = (gridWidth - spacing * 2) / 3;
     final double tileHeight = tileWidth * 0.82;
     final double iconSize = tileWidth * 0.6;
