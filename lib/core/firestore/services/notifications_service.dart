@@ -5,7 +5,6 @@ import 'package:care_link/core/firestore/models/received_notification.dart';
 class NotificationsService {
   final _db = FirebaseFirestore.instance;
 
-  /// Realtime notificaties voor mantelzorger (kan, maar je gebruikt vooral de aparte service)
   Stream<List<ReceivedNotification>> watchReceivedNotifications(
     String caregiverUid,
   ) {
@@ -23,7 +22,6 @@ class NotificationsService {
         );
   }
 
-  /// Notificatieblokken voor patiënt (de 3x3 grid)
   Future<List<NotificationItem>> fetchNotificationBlocks() async {
     final snap = await _db.collection('notifications').orderBy('order').get();
 
@@ -32,7 +30,6 @@ class NotificationsService {
         .toList();
   }
 
-  /// Verstuur melding naar alle gekoppelde mantelzorgers
   Future<void> sendNotificationToLinkedCaregivers({
     required String patientUid,
     required String patientName,
@@ -59,7 +56,6 @@ class NotificationsService {
     }
   }
 
-  /// Mantelzorger verwijdert notificatie
   Future<void> deleteReceivedNotification({
     required String caregiverUid,
     required String notificationId,

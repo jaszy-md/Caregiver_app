@@ -1,4 +1,5 @@
 import 'package:care_link/core/firestore/services/caregiver_connect_service.dart';
+import 'package:care_link/features/patient/presentation/widgets/dialogs/confirm_remove_caregiver_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:care_link/gen/assets.gen.dart';
@@ -39,8 +40,6 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(height: size.height * 0.020),
-
-                  // INPUT
                   Container(
                     height: 57,
                     decoration: BoxDecoration(
@@ -121,13 +120,6 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                           fontWeight: FontWeight.w500,
                           color: Colors.white,
                           fontSize: 15,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black54,
-                              offset: Offset(0, 0.3),
-                              blurRadius: 0.2,
-                            ),
-                          ],
                         ),
                       ),
                     ),
@@ -176,18 +168,49 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                           itemCount: caregivers.length,
                           itemBuilder: (context, i) {
                             final c = caregivers[i];
+                            final name = c['name'] ?? 'Onbekend';
+
                             return Padding(
                               padding: const EdgeInsets.symmetric(
-                                vertical: 4,
+                                vertical: 6,
                                 horizontal: 12,
                               ),
-                              child: Text(
-                                "• ${c['name']} (${c['email']})",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontFamily: 'Poppins',
-                                ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontFamily: 'Poppins',
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      showDialog(
+                                        context: context,
+                                        builder:
+                                            (_) => ConfirmRemoveCaregiverDialog(
+                                              name: name,
+                                              onConfirm: () async {
+                                                await _service
+                                                    .disconnectCaregiver(
+                                                      patientUid: user.uid,
+                                                      caregiverUid: c['uid'],
+                                                    );
+                                              },
+                                            ),
+                                      );
+                                    },
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ],
                               ),
                             );
                           },

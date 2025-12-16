@@ -37,6 +37,16 @@ class CaregiverConnectService {
     return null;
   }
 
+  Future<void> disconnectCaregiver({
+    required String patientUid,
+    required String caregiverUid,
+  }) async {
+    await _linkService.unlinkUsers(
+      patientUid: patientUid,
+      caregiverUid: caregiverUid,
+    );
+  }
+
   Stream<List<Map<String, dynamic>>> watchLinkedUsers(String uid) {
     return _db.collection('users').doc(uid).snapshots().asyncMap((snap) async {
       final data = snap.data();
