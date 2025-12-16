@@ -207,7 +207,7 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                                     child: const Icon(
                                       Icons.close,
                                       color: Colors.white,
-                                      size: 18,
+                                      size: 30,
                                     ),
                                   ),
                                 ],

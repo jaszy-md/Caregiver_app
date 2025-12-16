@@ -16,7 +16,7 @@ class ConfirmRemoveCaregiverDialog extends StatelessWidget {
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 44),
       child: Transform.translate(
-        offset: const Offset(0, 160),
+        offset: const Offset(0, 100),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 320),
