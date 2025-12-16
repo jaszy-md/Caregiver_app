@@ -18,4 +18,10 @@ class UserService {
   Future<void> createUser(String uid, Map<String, dynamic> data) async {
     await _db.collection('users').doc(uid).set(data);
   }
+
+  Future<void> updateEmergencyContact(String uid, String? phoneNumber) async {
+    await _db.collection('users').doc(uid).update({
+      'emergencyContact': phoneNumber,
+    });
+  }
 }

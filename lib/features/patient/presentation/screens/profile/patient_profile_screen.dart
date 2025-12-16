@@ -1,110 +1,60 @@
+import 'package:care_link/core/firestore/services/user_service.dart';
 import 'package:care_link/features/shared/presentation/widgets/tiles/line_dot_title.dart';
 import 'package:care_link/features/shared/presentation/widgets/buttons/small_btn.dart';
+import 'package:care_link/features/shared/presentation/widgets/dialogs/logout_confirm_dialog.dart';
+import 'package:care_link/features/shared/presentation/widgets/dialogs/emergency_contact_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:care_link/features/patient/presentation/widgets/toggles/joystick_toggle.dart';
 import 'package:care_link/features/patient/state/joystick_controller.dart';
 import 'package:care_link/features/auth/data/services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PatientProfileScreen extends StatelessWidget {
   const PatientProfileScreen({super.key});
 
-  // ✅ Zelfde dialog als Caregiver
-  Future<bool?> _showLogoutDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Weet u zeker dat u wilt uitloggen?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF00383D),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(true),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF005159),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Uitloggen',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(false),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Color(0xFFB0D7DB),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Annuleren',
-                        style: TextStyle(
-                          color: Color(0xFF00383D),
-                          fontSize: 15,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  String _mapUserRole(String? role) {
+    switch (role) {
+      case 'patient':
+        return 'Zorgbehoevende';
+      case 'caregiver':
+        return 'Mantelzorger';
+      default:
+        return 'Gebruiker';
+    }
   }
 
-  // ✅ Uitlog functionaliteit
   Future<void> _logout(BuildContext context) async {
-    final confirmed = await _showLogoutDialog(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => const LogoutConfirmDialog(),
+    );
 
     if (confirmed == true) {
-      final auth = AuthService();
-      await auth.signOut();
-
-      if (context.mounted) {
-        context.go('/login');
-      }
+      await AuthService().signOut();
+      if (context.mounted) context.go('/login');
     }
+  }
+
+  Future<void> _openEmergencyDialog(
+    BuildContext context,
+    String uid,
+    String? currentValue,
+  ) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder:
+          (_) => EmergencyContactDialog(
+            initialValue: currentValue,
+            onSave: (value) async {
+              await UserService().updateEmergencyContact(uid, value);
+            },
+          ),
+    );
   }
 
   @override
@@ -112,6 +62,7 @@ class PatientProfileScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final containerWidth = size.width * 0.8;
     final containerHeight = size.height * 0.46;
+    final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -124,6 +75,7 @@ class PatientProfileScreen extends StatelessWidget {
               const SizedBox(height: 5),
               const LineDotTitle(title: 'Profiel'),
               const SizedBox(height: 25),
+
               Transform.translate(
                 offset: const Offset(-2, 0),
                 child: Container(
@@ -155,10 +107,6 @@ class PatientProfileScreen extends StatelessWidget {
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
-                              borderRadius: BorderRadius.only(
-                                topRight: Radius.circular(12),
-                                bottomRight: Radius.circular(12),
-                              ),
                             ),
                           ),
                         ),
@@ -186,6 +134,7 @@ class PatientProfileScreen extends StatelessWidget {
                           children: [
                             SizedBox(height: containerHeight * 0.05),
 
+                            // NAAM + ROL
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(
@@ -199,29 +148,43 @@ class PatientProfileScreen extends StatelessWidget {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Jasmin',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Mantelzorger',
-                                        style: TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  StreamBuilder<DocumentSnapshot>(
+                                    stream:
+                                        FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(uid)
+                                            .snapshots(),
+                                    builder: (context, snapshot) {
+                                      final data =
+                                          snapshot.data?.data()
+                                              as Map<String, dynamic>?;
 
-                                  // ✅ Deze knop opent nu een dialog
+                                      final name = data?['name'] ?? ' ';
+                                      final role = _mapUserRole(data?['role']);
+
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            name,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            role,
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
                                   GestureDetector(
                                     onTap: () => _logout(context),
                                     child: const Icon(
@@ -236,6 +199,7 @@ class PatientProfileScreen extends StatelessWidget {
 
                             const SizedBox(height: 15),
 
+                            // JOYSTICK
                             Container(
                               margin: const EdgeInsets.symmetric(
                                 horizontal: 20,
@@ -253,7 +217,6 @@ class PatientProfileScreen extends StatelessWidget {
                                           Assets.images.joystick.image(
                                             width: 45,
                                             height: 45,
-                                            fit: BoxFit.contain,
                                           ),
                                           const SizedBox(width: 10),
                                           const Text(
@@ -286,22 +249,74 @@ class PatientProfileScreen extends StatelessWidget {
                             ),
 
                             SizedBox(height: containerHeight * 0.015),
-                            SmallBtn(
-                              text: 'Licenties',
-                              onTap: () {
-                                showLicensePage(
-                                  context: context,
-                                  applicationName: 'CareLink',
-                                  applicationVersion: '1.0.0',
-                                  applicationLegalese:
-                                      '© ${DateTime.now().year} CareLink Team',
+
+                            // VERANDER ROL
+                            const SmallBtn(text: 'Verander rol'),
+
+                            // UW NOODNUMMER (NU ONDER VERANDER ROL)
+                            StreamBuilder<DocumentSnapshot>(
+                              stream:
+                                  FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(uid)
+                                      .snapshots(),
+                              builder: (context, snapshot) {
+                                final data =
+                                    snapshot.data?.data()
+                                        as Map<String, dynamic>?;
+                                final emergencyContact =
+                                    data?['emergencyContact'];
+
+                                return SmallBtn(
+                                  text: 'Uw noodnummer',
+                                  icon: Icons.phone_in_talk,
+                                  onTap:
+                                      () => _openEmergencyDialog(
+                                        context,
+                                        uid,
+                                        emergencyContact,
+                                      ),
                                 );
                               },
                             ),
-                            const SmallBtn(text: 'Verander rol'),
+
                             const SmallBtn(
                               text: 'Verwijder account',
                               icon: Icons.delete_outline,
+                            ),
+
+                            const Spacer(),
+
+                            // LICENTIES ONDERSTREEPT RECHTSONDER
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                right: 20,
+                                bottom: 8,
+                              ),
+                              child: Align(
+                                alignment: Alignment.bottomRight,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    showLicensePage(
+                                      context: context,
+                                      applicationName: 'CareLink',
+                                      applicationVersion: '1.0.0',
+                                      applicationLegalese:
+                                          '© ${DateTime.now().year} CareLink Team',
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Licenties',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF004E52),
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),

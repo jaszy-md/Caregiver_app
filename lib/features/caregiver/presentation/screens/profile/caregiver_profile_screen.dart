@@ -1,19 +1,36 @@
 import 'package:care_link/features/shared/presentation/widgets/tiles/line_dot_title.dart';
 import 'package:care_link/features/shared/presentation/widgets/buttons/small_btn.dart';
+import 'package:care_link/features/shared/presentation/widgets/dialogs/logout_confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:care_link/features/auth/data/services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CaregiverProfileScreen extends StatelessWidget {
   const CaregiverProfileScreen({super.key});
 
+  String _mapUserRole(String? role) {
+    switch (role) {
+      case 'caregiver':
+        return 'Mantelzorger';
+      case 'patient':
+        return 'Zorgbehoevende';
+      default:
+        return 'Gebruiker';
+    }
+  }
+
   Future<void> _logout(BuildContext context) async {
-    final confirmed = await _showLogoutDialog(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => const LogoutConfirmDialog(),
+    );
 
     if (confirmed == true) {
-      final auth = AuthService();
-      await auth.signOut();
+      await AuthService().signOut();
 
       if (context.mounted) {
         context.go('/login');
@@ -21,94 +38,13 @@ class CaregiverProfileScreen extends StatelessWidget {
     }
   }
 
-  Future<bool?> _showLogoutDialog(BuildContext context) async {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Weet u zeker dat u wilt uitloggen?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF00383D),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(true),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Color(0xFF005159),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Uitloggen',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(false),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Color(0xFFB0D7DB),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Annuleren',
-                        style: TextStyle(
-                          color: Color(0xFF00383D),
-                          fontSize: 15,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final containerWidth = size.width * 0.8;
     final containerHeight = size.height * 0.43;
+
+    final uid = FirebaseAuth.instance.currentUser!.uid;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -182,26 +118,42 @@ class CaregiverProfileScreen extends StatelessWidget {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Jasmin',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Mantelzorger',
-                                        style: TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
+                                  StreamBuilder<DocumentSnapshot>(
+                                    stream:
+                                        FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(uid)
+                                            .snapshots(),
+                                    builder: (context, snapshot) {
+                                      final data =
+                                          snapshot.data?.data()
+                                              as Map<String, dynamic>?;
+
+                                      final name = data?['name'] ?? '';
+                                      final role = _mapUserRole(data?['role']);
+
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            name,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            role,
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   ),
 
                                   GestureDetector(

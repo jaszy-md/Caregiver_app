@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:care_link/features/patient/presentation/widgets/sections/patient_notifications_section.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class PatientHomeScreen extends ConsumerStatefulWidget {
   const PatientHomeScreen({super.key});
@@ -37,28 +39,47 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen>
     });
   }
 
-  void _onNotificationSent() {
+  /// 👉 Haal noodnummer op uit user-tabel (fallback = 112)
+  Future<String> _getEmergencyPhoneNumber() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    final data = doc.data();
+    final emergencyContact = data?['emergencyContact'];
+
+    if (emergencyContact == null ||
+        emergencyContact is! String ||
+        emergencyContact.trim().isEmpty) {
+      return '112';
+    }
+
+    return emergencyContact.trim();
+  }
+
+  void _onNotificationSent() async {
     final now = DateTime.now();
 
-    // 🔹 Opschonen eerst
     _sentTimestamps.removeWhere((t) => now.difference(t) > _window);
 
-    // 🔴 Check vóór toevoegen → exact op tijd
     if (_sentTimestamps.length >= _threshold - 1 && !_dialogShown) {
       _dialogShown = true;
+
+      final phoneNumber = await _getEmergencyPhoneNumber();
+
+      if (!mounted) return;
 
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const ConcernedNotificationDialog(phoneNumber: '112'),
+        builder: (_) => ConcernedNotificationDialog(phoneNumber: phoneNumber),
       ).then((_) {
-        // reset na dialoog
         _sentTimestamps.clear();
         _dialogShown = false;
       });
     }
 
-    // ➕ pas NU toevoegen
     _sentTimestamps.add(now);
 
     _resetTimer?.cancel();
