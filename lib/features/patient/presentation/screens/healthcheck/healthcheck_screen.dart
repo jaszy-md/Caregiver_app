@@ -1,19 +1,21 @@
 import 'package:care_link/core/firestore/services/user_service.dart';
+import 'package:care_link/core/riverpod_providers/stats_context_provider.dart';
 import 'package:care_link/features/patient/presentation/widgets/tiles/health_stat_title.dart';
 import 'package:flutter/material.dart';
 import 'package:care_link/features/shared/presentation/widgets/tiles/line_dot_title.dart';
 import 'package:go_router/go_router.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HealthCheckScreen extends StatefulWidget {
+class HealthCheckScreen extends ConsumerStatefulWidget {
   const HealthCheckScreen({super.key});
 
   @override
-  State<HealthCheckScreen> createState() => _HealthCheckScreenState();
+  ConsumerState<HealthCheckScreen> createState() => _HealthCheckScreenState();
 }
 
-class _HealthCheckScreenState extends State<HealthCheckScreen> {
+class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
   final _userService = UserService();
   final String _uid = FirebaseAuth.instance.currentUser!.uid;
 
@@ -27,7 +29,7 @@ class _HealthCheckScreenState extends State<HealthCheckScreen> {
   @override
   void initState() {
     super.initState();
-    _loadStats(); // 🔥 stil laden, geen loader
+    _loadStats();
   }
 
   void _increment(String key) {
@@ -58,9 +60,26 @@ class _HealthCheckScreenState extends State<HealthCheckScreen> {
     });
   }
 
-  /// ✅ juiste methode: vandaag opslaan + historie
-  Future<void> _saveStats() async {
+  Future<void> _saveAndGoToStats() async {
     await _userService.saveTodayHealthStats(_uid, _mystats);
+    final user = await _userService.getUser(_uid);
+
+    // ✅ context zetten via notifier
+    ref
+        .read(statsContextProvider.notifier)
+        .setContext(targetUid: _uid, displayName: user?['name']);
+
+    if (mounted) context.go('/stats');
+  }
+
+  Future<void> _goToStatsDirect() async {
+    final user = await _userService.getUser(_uid);
+
+    ref
+        .read(statsContextProvider.notifier)
+        .setContext(targetUid: _uid, displayName: user?['name']);
+
+    if (mounted) context.go('/stats');
   }
 
   @override
@@ -80,13 +99,11 @@ class _HealthCheckScreenState extends State<HealthCheckScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 5),
-                const Padding(
-                  padding: EdgeInsets.only(left: 0),
-                  child: LineDotTitle(title: 'Health state'),
-                ),
+                const LineDotTitle(title: 'Health state'),
                 const SizedBox(height: 20),
+
                 Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: SizedBox(
                     width: size.width * 0.70,
                     child: const Text(
@@ -101,36 +118,35 @@ class _HealthCheckScreenState extends State<HealthCheckScreen> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
+
                 Padding(
                   padding: const EdgeInsets.only(right: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children:
-                        _mystats.entries
-                            .map(
-                              (entry) => HealthStatTile(
-                                label: entry.key,
-                                value: entry.value,
-                                onIncrement: () => _increment(entry.key),
-                                onDecrement: () => _decrement(entry.key),
-                              ),
-                            )
-                            .toList(),
+                        _mystats.entries.map((entry) {
+                          return HealthStatTile(
+                            label: entry.key,
+                            value: entry.value,
+                            onIncrement: () => _increment(entry.key),
+                            onDecrement: () => _decrement(entry.key),
+                          );
+                        }).toList(),
                   ),
                 ),
+
                 Padding(
                   padding: const EdgeInsets.only(right: 20, top: 2, bottom: 20),
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: GestureDetector(
-                      onTap: () async {
-                        await _saveStats();
-                        if (mounted) context.go('/stats');
-                      },
+                      onTap: _saveAndGoToStats,
                       child: Container(
                         width: 118,
                         height: 35,
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: const Color(0xFF04454B),
                           borderRadius: BorderRadius.circular(6),
@@ -139,7 +155,6 @@ class _HealthCheckScreenState extends State<HealthCheckScreen> {
                             width: 2,
                           ),
                         ),
-                        alignment: Alignment.center,
                         child: const Text(
                           'Opslaan',
                           style: TextStyle(
@@ -155,13 +170,13 @@ class _HealthCheckScreenState extends State<HealthCheckScreen> {
                 ),
               ],
             ),
+
             Positioned(
               top: size.height * 0.135,
               right: 20,
               child: GestureDetector(
-                onTap: () => context.go('/stats'),
+                onTap: _goToStatsDirect,
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
                       padding: EdgeInsets.only(
@@ -170,15 +185,11 @@ class _HealthCheckScreenState extends State<HealthCheckScreen> {
                       ),
                       child: Assets.images.arrowHealthCheck.image(
                         width: arrowW,
-                        fit: BoxFit.contain,
                       ),
                     ),
                     Transform.translate(
                       offset: Offset(0, -size.height * 0.025),
-                      child: Assets.images.graphUp.image(
-                        width: graphW,
-                        fit: BoxFit.contain,
-                      ),
+                      child: Assets.images.graphUp.image(width: graphW),
                     ),
                   ],
                 ),

@@ -1,89 +1,75 @@
-import 'package:care_link/core/firestore/services/user_service.dart';
+import 'package:care_link/core/riverpod_providers/stats_context_provider.dart';
+import 'package:care_link/features/shared/presentation/widgets/sections/graph_section.dart';
 import 'package:care_link/features/shared/presentation/widgets/tiles/line_dot_title.dart';
 import 'package:care_link/features/shared/presentation/widgets/tiles/week_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:care_link/features/shared/presentation/widgets/sections/graph_section.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class StatsScreen extends StatelessWidget {
+class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
 
-  Future<String> _resolveTargetUserId() async {
-    final authUid = FirebaseAuth.instance.currentUser!.uid;
-    print('[StatsScreen] authUid = $authUid');
-
-    final user = await UserService().getUser(authUid);
-    print('[StatsScreen] user doc = $user');
-
-    if (user == null) {
-      print('[StatsScreen] user == null, fallback authUid');
-      return authUid;
-    }
-
-    final role = user['role'];
-    print('[StatsScreen] role = $role');
-
-    if (role == 'caregiver') {
-      final linked = user['linkedUserIds'];
-      print('[StatsScreen] linkedUserIds = $linked');
-
-      if (linked is List && linked.isNotEmpty) {
-        final first = linked.first;
-        print('[StatsScreen] using patientId = $first');
-        return first;
-      }
-    }
-
-    print('[StatsScreen] fallback authUid');
-    return authUid;
-  }
-
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<String>(
-      future: _resolveTargetUserId(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          // geen loader, geen flits
-          return const SizedBox();
-        }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsContext = ref.watch(statsContextProvider);
 
-        final targetUid = snapshot.data!;
+    final String title =
+        statsContext?.displayName != null &&
+                statsContext!.displayName!.isNotEmpty
+            ? "${statsContext.displayName}'s grafiek"
+            : 'Grafiek';
 
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final String? targetUid = statsContext?.targetUid;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 🔹 HEADER – altijd zichtbaar
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 0),
-                      child: LineDotTitle(title: 'Status Check'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 0),
-                      child: Transform.translate(
-                        offset: const Offset(0, -5),
-                        child: const WeekTile(),
-                      ),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: GraphSection(userId: targetUid),
-                  ),
+                LineDotTitle(title: title),
+                Transform.translate(
+                  offset: const Offset(0, -5),
+                  child: const WeekTile(),
                 ),
               ],
             ),
-          ),
-        );
-      },
+
+            const SizedBox(height: 10),
+
+            // 🔹 INFO bij lege context
+            if (targetUid == null)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  'Selecteer een patiënt of vul eerst gegevens in om statistieken te zien.',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    color: Color(0xFF005159),
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 10),
+
+            // 🔹 GRAPH – altijd renderen
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: GraphSection(
+                  // ⛑️ lege graph fallback
+                  userId: targetUid ?? '__empty__',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

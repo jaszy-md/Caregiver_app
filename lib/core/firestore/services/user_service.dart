@@ -46,7 +46,6 @@ class UserService {
   /// KOPPELING: CAREGIVER → PATIENT
   /// =========================
 
-  /// Zoek de patient die deze caregiver heeft gelinkt
   Future<String?> findPatientForCaregiver(String caregiverUid) async {
     print('[UserService] findPatientForCaregiver caregiverUid = $caregiverUid');
 
@@ -139,5 +138,64 @@ class UserService {
         .where('date', isLessThan: Timestamp.fromDate(end))
         .orderBy('date')
         .snapshots();
+  }
+
+  /// =========================
+  /// WEEKLY STATUS (%)
+  /// =========================
+
+  /// Berekent weekstatus in percentage (0–100)
+  Future<int> calculateWeeklyHealthPercentage(String uid) async {
+    final now = DateTime.now();
+    final monday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - DateTime.monday));
+
+    final start = DateTime(monday.year, monday.month, monday.day);
+    final end = start.add(const Duration(days: 7));
+
+    print('[UserService] calculateWeeklyHealthPercentage uid = $uid');
+    print('[UserService] week start = $start');
+    print('[UserService] week end = $end');
+
+    final snapshot =
+        await _db
+            .collection('users')
+            .doc(uid)
+            .collection('healthStatsDaily')
+            .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+            .where('date', isLessThan: Timestamp.fromDate(end))
+            .get();
+
+    int totalScore = 0;
+    int totalPossible = 0;
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+
+      final energie = (data['energie'] ?? 0) as int;
+      final eetlust = (data['eetlust'] ?? 0) as int;
+      final stemming = (data['stemming'] ?? 0) as int;
+      final slaapritme = (data['slaapritme'] ?? 0) as int;
+
+      totalScore += energie + eetlust + stemming + slaapritme;
+      totalPossible += 40; // max per dag
+
+      print(
+        '[UserService] day score = ${energie + eetlust + stemming + slaapritme}/40',
+      );
+    }
+
+    if (totalPossible == 0) {
+      print('[UserService] no data this week → 0%');
+      return 0;
+    }
+
+    final percentage = ((totalScore / totalPossible) * 100).round();
+    print('[UserService] weekly percentage = $percentage%');
+
+    return percentage.clamp(0, 100);
   }
 }

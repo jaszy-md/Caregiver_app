@@ -1,5 +1,7 @@
 import 'package:care_link/core/firestore/models/received_notification.dart';
+import 'package:care_link/core/firestore/services/user_service.dart';
 import 'package:care_link/core/riverpod_providers/received_notifications_providers.dart';
+import 'package:care_link/core/riverpod_providers/stats_context_provider.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_tile.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_title_tile.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/tiles/week-state-tile.dart';
@@ -19,10 +21,13 @@ class CaregiverHomeScreen extends ConsumerStatefulWidget {
 class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
     with TickerProviderStateMixin {
   late final AnimationController _weekTileController;
-  Animation<Offset>? _weekTileAnimation;
+  late final Animation<Offset> _weekTileAnimation;
 
-  // Houd animatiestatus per tile bij
   final Map<String, AnimationController> _tileControllers = {};
+
+  String? _patientUid;
+  String? _patientName;
+  int? _weekPercentage;
 
   @override
   void initState() {
@@ -30,24 +35,59 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
 
     _weekTileController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 700),
     );
 
     _weekTileAnimation = Tween<Offset>(
-      begin: const Offset(1.2, 0),
+      begin: const Offset(0.6, 0), // rustig
       end: Offset.zero,
     ).animate(
       CurvedAnimation(parent: _weekTileController, curve: Curves.easeOutCubic),
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _weekTileController.forward(from: 0);
+    _resolvePatientAndStats();
+  }
+
+  /// 🔑 ENIGE BRON VAN WAARHEID
+  Future<void> _resolvePatientAndStats() async {
+    final caregiverUid = FirebaseAuth.instance.currentUser?.uid;
+    if (caregiverUid == null) return;
+
+    final userService = UserService();
+
+    final patientUid = await userService.findPatientForCaregiver(caregiverUid);
+    if (!mounted || patientUid == null) return;
+
+    final patient = await userService.getUser(patientUid);
+
+    final weekPercentage = await userService.calculateWeeklyHealthPercentage(
+      patientUid,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _patientUid = patientUid;
+      _patientName = patient?['name'];
+      _weekPercentage = weekPercentage;
     });
+
+    // 🔥 context vooraf zetten voor ALLE navigatie
+    ref
+        .read(statsContextProvider.notifier)
+        .setContext(
+          targetUid: patientUid,
+          displayName: patient?['name'],
+          weekPercentage: weekPercentage,
+        );
+
+    // 🎯 animatie pas starten als alles stabiel is
+    _weekTileController.forward(from: 0);
   }
 
   @override
   void dispose() {
-    for (var ctrl in _tileControllers.values) {
+    for (final ctrl in _tileControllers.values) {
       ctrl.dispose();
     }
     _weekTileController.dispose();
@@ -84,7 +124,6 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
           const LineDotTitle(title: 'Welkom!'),
           const SizedBox(height: 15),
 
-          // week tile animatie
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -102,9 +141,14 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
                   ),
                 ),
               ),
+
+              // 🔹 Week tile
               SlideTransition(
-                position: _weekTileAnimation!,
-                child: const WeekStateTile(),
+                position: _weekTileAnimation,
+                child:
+                    _patientUid == null
+                        ? const SizedBox(width: 140, height: 130)
+                        : const WeekStateTile(),
               ),
             ],
           ),
@@ -123,15 +167,14 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
               child: asyncNotifications.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error:
-                    (err, stack) => Center(
+                    (_, __) => const Center(
                       child: Text(
                         'Er ging iets mis bij het ophalen van notificaties',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 16,
                           color: Color(0xFF005159),
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ),
                 data: (items) {
@@ -148,7 +191,7 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
                     );
                   }
 
-                  return _buildList(items, caregiverUid);
+                  return _buildList(items);
                 },
               ),
             ),
@@ -158,87 +201,39 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
     );
   }
 
-  Widget _buildList(List<ReceivedNotification> items, String caregiverUid) {
+  Widget _buildList(List<ReceivedNotification> items) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
         children:
-            items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-
-              // Controller per tile, alleen bij nieuwe tile maken
-              if (!_tileControllers.containsKey(item.id)) {
-                final ctrl = AnimationController(
+            items.map((item) {
+              _tileControllers.putIfAbsent(
+                item.id,
+                () => AnimationController(
                   vsync: this,
-                  duration: Duration(milliseconds: 650),
-                );
-                _tileControllers[item.id] = ctrl;
-
-                // animatie start direct bij nieuwe item
-                ctrl.forward(from: 0);
-              }
+                  duration: const Duration(milliseconds: 650),
+                )..forward(),
+              );
 
               final ctrl = _tileControllers[item.id]!;
 
-              final animation = Tween<Offset>(
-                begin: const Offset(0, -0.4),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(parent: ctrl, curve: Curves.easeOutCubic),
-              );
-
-              final fade = CurvedAnimation(parent: ctrl, curve: Curves.easeOut);
-
               return SlideTransition(
-                position: animation,
+                position: Tween<Offset>(
+                  begin: const Offset(0, -0.4),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(parent: ctrl, curve: Curves.easeOutCubic),
+                ),
                 child: FadeTransition(
-                  opacity: fade,
+                  opacity: CurvedAnimation(parent: ctrl, curve: Curves.easeOut),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 10,
                       horizontal: 7,
                     ),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned.fill(
-                          child: Container(
-                            height: 58, // exact zo groot als tile
-                            decoration: BoxDecoration(
-                              color: const Color.fromARGB(
-                                255,
-                                133,
-                                26,
-                                17,
-                              ).withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 20),
-                            child: const Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Dismissible(
-                          key: Key(item.id),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (_) async {
-                            await ref
-                                .read(receivedNotificationServiceProvider)
-                                .deleteNotification(
-                                  caregiverUid: caregiverUid,
-                                  notificationId: item.id,
-                                );
-                          },
-                          child: NotificationTile(
-                            label: item.receivedLabel,
-                            receivedAt: item.createdAt,
-                          ),
-                        ),
-                      ],
+                    child: NotificationTile(
+                      label: item.receivedLabel,
+                      receivedAt: item.createdAt,
                     ),
                   ),
                 ),
