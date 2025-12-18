@@ -1,10 +1,14 @@
+import 'package:care_link/core/firestore/services/user_service.dart';
 import 'package:care_link/features/shared/presentation/widgets/tiles/legenda_tile.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
 class GraphSection extends StatefulWidget {
-  const GraphSection({super.key});
+  final String userId;
+
+  const GraphSection({super.key, required this.userId});
 
   @override
   State<GraphSection> createState() => _GraphSectionState();
@@ -12,6 +16,7 @@ class GraphSection extends StatefulWidget {
 
 class _GraphSectionState extends State<GraphSection> {
   Color? _activeColor;
+  final _userService = UserService();
 
   @override
   void initState() {
@@ -23,6 +28,16 @@ class _GraphSectionState extends State<GraphSection> {
     setState(() {
       _activeColor = _activeColor == color ? null : color;
     });
+  }
+
+  DateTime _startOfWeekMonday(DateTime d) {
+    final date = DateTime(d.year, d.month, d.day);
+    final diff = date.weekday - DateTime.monday;
+    return date.subtract(Duration(days: diff));
+  }
+
+  int _dayIndexFromMonday(DateTime day) {
+    return day.weekday - DateTime.monday; // ma=0 .. zo=6
   }
 
   @override
@@ -39,122 +54,155 @@ class _GraphSectionState extends State<GraphSection> {
       chartHeight = 420;
     }
 
-    final eetlust = const Color(0xFF00AEEF);
-    final energie = const Color(0xFF00B050);
-    final stemming = const Color(0xFFFF3EA5);
-    final slaapritme = const Color(0xFFFFA500);
+    final eetlustColor = const Color(0xFF00AEEF);
+    final energieColor = const Color(0xFF00B050);
+    final stemmingColor = const Color(0xFFFF3EA5);
+    final slaapritmeColor = const Color(0xFFFFA500);
 
-    final lineColors = [eetlust, energie, stemming, slaapritme];
-    final List<List<double>> lineValues = [
-      [5, 3, 3, 3, 2, 1, 0],
-      [3, 6, 6, 5, 4, 3, 3],
-      [1, 4, 5, 5, 5, 6, 7],
-      [2, 7, 8, 8, 9, 9, 10],
+    final lineColors = [
+      eetlustColor,
+      energieColor,
+      stemmingColor,
+      slaapritmeColor,
     ];
 
-    return Column(
-      children: [
-        SizedBox(
-          height: chartHeight,
-          width: width * 0.88,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              //Graph
-              Positioned(
-                left: width * 0.1,
-                right: width * 0.05,
-                top: 4 * scale,
-                bottom: 40 * scale,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14 * scale),
-                    border: Border.all(
-                      color: const Color(0xFF0C3337),
-                      width: 2.5,
+    final weekStart = _startOfWeekMonday(DateTime.now());
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _userService.watchWeekHealthStats(widget.userId, weekStart),
+      builder: (context, snapshot) {
+        print('--- [GraphSection] snapshot ---');
+        print('hasData = ${snapshot.hasData}');
+        print('hasError = ${snapshot.hasError}');
+        print('error = ${snapshot.error}');
+        print('connectionState = ${snapshot.connectionState}');
+        print('docs length = ${snapshot.data?.docs.length}');
+
+        // 👇 per lijn alleen bestaande dagen opslaan
+        final Map<int, double> eetlust = {};
+        final Map<int, double> energie = {};
+        final Map<int, double> stemming = {};
+        final Map<int, double> slaapritme = {};
+
+        if (snapshot.hasData) {
+          for (final doc in snapshot.data!.docs) {
+            final data = doc.data();
+            final ts = data['date'];
+            if (ts is! Timestamp) continue;
+
+            final day = ts.toDate();
+            final idx = _dayIndexFromMonday(day);
+            if (idx < 0 || idx > 6) continue;
+
+            eetlust[idx] = (data['eetlust'] ?? 0).toDouble();
+            energie[idx] = (data['energie'] ?? 0).toDouble();
+            stemming[idx] = (data['stemming'] ?? 0).toDouble();
+            slaapritme[idx] = (data['slaapritme'] ?? 0).toDouble();
+          }
+        }
+
+        List<FlSpot> _spotsFromMap(Map<int, double> values) {
+          final entries =
+              values.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+
+          return entries.map((e) => FlSpot(e.key.toDouble(), e.value)).toList();
+        }
+
+        LineChartBarData _buildLine(Color color, Map<int, double> values) {
+          final darker =
+              HSLColor.fromColor(color)
+                  .withLightness(
+                    (HSLColor.fromColor(color).lightness * 0.6).clamp(0.0, 1.0),
+                  )
+                  .toColor();
+
+          final isActive = _activeColor == color;
+
+          return LineChartBarData(
+            isCurved: false,
+            color: isActive ? color : color.withOpacity(0.8),
+            barWidth: isActive ? 4 : 2,
+            isStrokeCapRound: true,
+            belowBarData: BarAreaData(show: false),
+            dotData: FlDotData(
+              show: true,
+              getDotPainter:
+                  (spot, percent, barData, i) => FlDotCirclePainter(
+                    radius: isActive ? 4.8 : 3.2,
+                    color: isActive ? color : darker,
+                    strokeColor:
+                        isActive ? color.withOpacity(0.6) : Colors.white,
+                    strokeWidth: 1,
+                  ),
+            ),
+            spots: _spotsFromMap(values),
+          );
+        }
+
+        return Column(
+          children: [
+            SizedBox(
+              height: chartHeight,
+              width: width * 0.88,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: width * 0.1,
+                    right: width * 0.05,
+                    top: 4 * scale,
+                    bottom: 40 * scale,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14 * scale),
+                        border: Border.all(
+                          color: const Color(0xFF0C3337),
+                          width: 2.5,
+                        ),
+                      ),
+                      clipBehavior: Clip.hardEdge,
+                      child: LineChart(
+                        LineChartData(
+                          minY: 0,
+                          maxY: 10,
+                          minX: 0,
+                          maxX: 6,
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: true,
+                            horizontalInterval: 1,
+                            verticalInterval: 1,
+                            getDrawingHorizontalLine:
+                                (_) => FlLine(
+                                  color: Colors.grey.withOpacity(0.3),
+                                  strokeWidth: 1,
+                                ),
+                            getDrawingVerticalLine:
+                                (_) => FlLine(
+                                  color: Colors.grey.withOpacity(0.3),
+                                  strokeWidth: 1,
+                                ),
+                          ),
+                          borderData: FlBorderData(show: false),
+                          clipData: const FlClipData.all(),
+                          titlesData: FlTitlesData(show: false),
+                          lineBarsData: [
+                            _buildLine(eetlustColor, eetlust),
+                            _buildLine(energieColor, energie),
+                            _buildLine(stemmingColor, stemming),
+                            _buildLine(slaapritmeColor, slaapritme),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  clipBehavior: Clip.hardEdge,
-                  child: LineChart(
-                    LineChartData(
-                      minY: 0,
-                      maxY: 10,
-                      minX: 0,
-                      maxX: 6,
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: true,
-                        horizontalInterval: 1,
-                        verticalInterval: 1,
-                        getDrawingHorizontalLine:
-                            (value) => FlLine(
-                              color: Colors.grey.withOpacity(0.3),
-                              strokeWidth: 1,
-                            ),
-                        getDrawingVerticalLine:
-                            (value) => FlLine(
-                              color: Colors.grey.withOpacity(0.3),
-                              strokeWidth: 1,
-                            ),
-                      ),
-                      borderData: FlBorderData(show: false),
-                      clipData: const FlClipData.all(),
-                      titlesData: FlTitlesData(show: false),
 
-                      // Tab logic
-                      lineTouchData: LineTouchData(
-                        enabled: true,
-                        handleBuiltInTouches: false,
-                        getTouchedSpotIndicator: (barData, indexes) => [],
-                        touchCallback: (event, response) {
-                          if (event is! FlTapUpEvent) return;
-
-                          final tap = event.localPosition;
-                          double bestDist = double.infinity;
-                          int? bestLine;
-
-                          for (int l = 0; l < lineValues.length; l++) {
-                            final values = lineValues[l];
-                            for (int i = 0; i < values.length; i++) {
-                              final p = Offset(
-                                i.toDouble(),
-                                values[i].toDouble(),
-                              );
-                              final dx = tap.dx / 40 - p.dx;
-                              final dy = tap.dy / 30 - (10 - p.dy);
-                              final dist = sqrt(dx * dx + dy * dy);
-                              if (dist < bestDist) {
-                                bestDist = dist;
-                                bestLine = l;
-                              }
-                            }
-                          }
-
-                          if (bestLine != null) {
-                            final color = lineColors[bestLine];
-                            _toggleGlow(color);
-                          }
-                        },
-                      ),
-
-                      lineBarsData: [
-                        for (int i = 0; i < lineColors.length; i++)
-                          _buildLine(lineColors[i], lineValues[i]),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              // numbers
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 33 * scale,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Column(
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 33 * scale,
+                    child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: List.generate(
@@ -171,117 +219,79 @@ class _GraphSectionState extends State<GraphSection> {
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+
+                  Positioned(
+                    left: width * 0.1,
+                    right: width * 0.05,
+                    bottom: 5,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _DayLabel('Ma'),
+                        _DayLabel('Di'),
+                        _DayLabel('Wo'),
+                        _DayLabel('Do'),
+                        _DayLabel('Vr'),
+                        _DayLabel('Za'),
+                        _DayLabel('Zo'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+            ),
 
-              // days
-              Positioned(
-                left: width * 0.1,
-                right: width * 0.05,
-                bottom: 5,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    _DayLabel('Ma'),
-                    _DayLabel('Di'),
-                    _DayLabel('Wo'),
-                    _DayLabel('Do'),
-                    _DayLabel('Vr'),
-                    _DayLabel('Za'),
-                    _DayLabel('Zo'),
-                  ],
-                ),
+            const SizedBox(height: 2),
+
+            Container(
+              margin: const EdgeInsets.only(left: 20),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      LegendaTile(
+                        label: 'Eetlust',
+                        color: eetlustColor,
+                        isActive: _activeColor == eetlustColor,
+                        onTap: () => _toggleGlow(eetlustColor),
+                      ),
+                      const SizedBox(width: 20),
+                      LegendaTile(
+                        label: 'Energie',
+                        color: energieColor,
+                        isActive: _activeColor == energieColor,
+                        onTap: () => _toggleGlow(energieColor),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10 * scale),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      LegendaTile(
+                        label: 'Stemming',
+                        color: stemmingColor,
+                        isActive: _activeColor == stemmingColor,
+                        onTap: () => _toggleGlow(stemmingColor),
+                      ),
+                      const SizedBox(width: 20),
+                      LegendaTile(
+                        label: 'Slaapritme',
+                        color: slaapritmeColor,
+                        isActive: _activeColor == slaapritmeColor,
+                        onTap: () => _toggleGlow(slaapritmeColor),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 2),
-        //legenda
-        Container(
-          margin: const EdgeInsets.only(left: 20),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    LegendaTile(
-                      label: 'Eetlust',
-                      color: eetlust,
-                      isActive: _activeColor == eetlust,
-                      onTap: () => _toggleGlow(eetlust),
-                    ),
-                    const SizedBox(width: 20),
-                    LegendaTile(
-                      label: 'Energie',
-                      color: energie,
-                      isActive: _activeColor == energie,
-                      onTap: () => _toggleGlow(energie),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10 * scale),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    LegendaTile(
-                      label: 'Stemming',
-                      color: stemming,
-                      isActive: _activeColor == stemming,
-                      onTap: () => _toggleGlow(stemming),
-                    ),
-                    const SizedBox(width: 20),
-                    LegendaTile(
-                      label: 'Slaapritme',
-                      color: slaapritme,
-                      isActive: _activeColor == slaapritme,
-                      onTap: () => _toggleGlow(slaapritme),
-                    ),
-                  ],
-                ),
-              ],
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  //line in graph
-  LineChartBarData _buildLine(Color color, List<double> values) {
-    final darker =
-        HSLColor.fromColor(color)
-            .withLightness(
-              (HSLColor.fromColor(color).lightness * 0.6).clamp(0.0, 1.0),
-            )
-            .toColor();
-
-    final bool isActive = _activeColor == color;
-
-    return LineChartBarData(
-      isCurved: false,
-      color: isActive ? color : color.withOpacity(0.8),
-      barWidth: isActive ? 4 : 2,
-      isStrokeCapRound: true,
-      belowBarData: BarAreaData(show: false),
-      dotData: FlDotData(
-        show: true,
-        getDotPainter:
-            (spot, percent, barData, i) => FlDotCirclePainter(
-              radius: isActive ? 4.8 : 3.2,
-              color: isActive ? color : darker,
-              strokeColor: isActive ? color.withOpacity(0.6) : Colors.white,
-              strokeWidth: 1,
-            ),
-      ),
-      spots: List.generate(
-        values.length,
-        (i) => FlSpot(i.toDouble(), values[i]),
-      ),
+          ],
+        );
+      },
     );
   }
 }

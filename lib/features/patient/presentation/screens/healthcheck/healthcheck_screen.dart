@@ -1,8 +1,10 @@
+import 'package:care_link/core/firestore/services/user_service.dart';
 import 'package:care_link/features/patient/presentation/widgets/tiles/health_stat_title.dart';
 import 'package:flutter/material.dart';
 import 'package:care_link/features/shared/presentation/widgets/tiles/line_dot_title.dart';
 import 'package:go_router/go_router.dart';
 import 'package:care_link/gen/assets.gen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HealthCheckScreen extends StatefulWidget {
   const HealthCheckScreen({super.key});
@@ -12,12 +14,21 @@ class HealthCheckScreen extends StatefulWidget {
 }
 
 class _HealthCheckScreenState extends State<HealthCheckScreen> {
-  final Map<String, int> _mystats = {
+  final _userService = UserService();
+  final String _uid = FirebaseAuth.instance.currentUser!.uid;
+
+  Map<String, int> _mystats = {
     'Energie': 0,
-    'Eetlust': 3,
-    'Stemming': 6,
-    'Slaapritme': 8,
+    'Eetlust': 0,
+    'Stemming': 0,
+    'Slaapritme': 0,
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats(); // 🔥 stil laden, geen loader
+  }
 
   void _increment(String key) {
     setState(() {
@@ -29,6 +40,27 @@ class _HealthCheckScreenState extends State<HealthCheckScreen> {
     setState(() {
       _mystats[key] = (_mystats[key]! - 1).clamp(0, 10);
     });
+  }
+
+  Future<void> _loadStats() async {
+    final user = await _userService.getUser(_uid);
+    final stats = user?['healthStats'] as Map<String, dynamic>?;
+
+    if (!mounted || stats == null) return;
+
+    setState(() {
+      _mystats = {
+        'Energie': stats['energie'] ?? 0,
+        'Eetlust': stats['eetlust'] ?? 0,
+        'Stemming': stats['stemming'] ?? 0,
+        'Slaapritme': stats['slaapritme'] ?? 0,
+      };
+    });
+  }
+
+  /// ✅ juiste methode: vandaag opslaan + historie
+  Future<void> _saveStats() async {
+    await _userService.saveTodayHealthStats(_uid, _mystats);
   }
 
   @override
@@ -92,7 +124,10 @@ class _HealthCheckScreenState extends State<HealthCheckScreen> {
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: GestureDetector(
-                      onTap: () => context.go('/stats'),
+                      onTap: () async {
+                        await _saveStats();
+                        if (mounted) context.go('/stats');
+                      },
                       child: Container(
                         width: 118,
                         height: 35,
