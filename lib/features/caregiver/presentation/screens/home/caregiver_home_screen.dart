@@ -24,10 +24,7 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
   late final Animation<Offset> _weekTileAnimation;
 
   final Map<String, AnimationController> _tileControllers = {};
-
   String? _patientUid;
-  String? _patientName;
-  int? _weekPercentage;
 
   @override
   void initState() {
@@ -35,11 +32,11 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
 
     _weekTileController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 900),
     );
 
     _weekTileAnimation = Tween<Offset>(
-      begin: const Offset(0.6, 0), // rustig
+      begin: const Offset(1.2, 0),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(parent: _weekTileController, curve: Curves.easeOutCubic),
@@ -48,18 +45,15 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
     _resolvePatientAndStats();
   }
 
-  /// 🔑 ENIGE BRON VAN WAARHEID
   Future<void> _resolvePatientAndStats() async {
     final caregiverUid = FirebaseAuth.instance.currentUser?.uid;
     if (caregiverUid == null) return;
 
     final userService = UserService();
-
     final patientUid = await userService.findPatientForCaregiver(caregiverUid);
     if (!mounted || patientUid == null) return;
 
     final patient = await userService.getUser(patientUid);
-
     final weekPercentage = await userService.calculateWeeklyHealthPercentage(
       patientUid,
     );
@@ -68,11 +62,8 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
 
     setState(() {
       _patientUid = patientUid;
-      _patientName = patient?['name'];
-      _weekPercentage = weekPercentage;
     });
 
-    // 🔥 context vooraf zetten voor ALLE navigatie
     ref
         .read(statsContextProvider.notifier)
         .setContext(
@@ -81,7 +72,6 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
           weekPercentage: weekPercentage,
         );
 
-    // 🎯 animatie pas starten als alles stabiel is
     _weekTileController.forward(from: 0);
   }
 
@@ -90,26 +80,18 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
     for (final ctrl in _tileControllers.values) {
       ctrl.dispose();
     }
+    _tileControllers.clear();
     _weekTileController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final double bottomPadding = MediaQuery.of(context).padding.bottom + 8;
-
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 8;
     final caregiverUid = FirebaseAuth.instance.currentUser?.uid;
+
     if (caregiverUid == null) {
-      return const Center(
-        child: Text(
-          'Niet ingelogd',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 16,
-            color: Color(0xFF005159),
-          ),
-        ),
-      );
+      return const Center(child: Text('Niet ingelogd'));
     }
 
     final asyncNotifications = ref.watch(
@@ -141,8 +123,6 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
                   ),
                 ),
               ),
-
-              // 🔹 Week tile
               SlideTransition(
                 position: _weekTileAnimation,
                 child:
@@ -154,7 +134,26 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
           ),
 
           const SizedBox(height: 10),
-          const NotificationTitleTile(label: 'Notificaties'),
+
+          NotificationTitleTile(
+            label: 'Notificaties',
+            onClearAll: () async {
+              final userService = UserService();
+
+              /// 1️⃣ UI eerst veilig leegmaken
+              for (final ctrl in _tileControllers.values) {
+                ctrl.dispose();
+              }
+              _tileControllers.clear();
+
+              /// 2️⃣ Provider laten hertekenen
+              ref.invalidate(receivedNotificationsProvider(caregiverUid));
+
+              /// 3️⃣ Daarna pas Firestore opschonen
+              await userService.deleteAllReceivedNotifications(caregiverUid);
+            },
+          ),
+
           const SizedBox(height: 3),
 
           Expanded(
@@ -166,32 +165,14 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
               ),
               child: asyncNotifications.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error:
-                    (_, __) => const Center(
-                      child: Text(
-                        'Er ging iets mis bij het ophalen van notificaties',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          color: Color(0xFF005159),
-                        ),
-                      ),
-                    ),
+                error: (_, __) => const Center(child: Text('Fout bij laden')),
                 data: (items) {
                   if (items.isEmpty) {
                     return const Center(
-                      child: Text(
-                        'Geen notificaties ontvangen',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          color: Color(0xFF005159),
-                        ),
-                      ),
+                      child: Text('Geen notificaties ontvangen'),
                     );
                   }
-
-                  return _buildList(items);
+                  return _buildList(items, caregiverUid);
                 },
               ),
             ),
@@ -201,7 +182,7 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
     );
   }
 
-  Widget _buildList(List<ReceivedNotification> items) {
+  Widget _buildList(List<ReceivedNotification> items, String caregiverUid) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
@@ -231,9 +212,44 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
                       vertical: 10,
                       horizontal: 7,
                     ),
-                    child: NotificationTile(
-                      label: item.receivedLabel,
-                      receivedAt: item.createdAt,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(
+                                255,
+                                133,
+                                26,
+                                17,
+                              ).withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20),
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        Dismissible(
+                          key: ValueKey(item.id),
+                          direction: DismissDirection.endToStart,
+                          onDismissed: (_) async {
+                            final userService = UserService();
+                            await userService.deleteReceivedNotification(
+                              caregiverUid,
+                              item.id,
+                            );
+                            _tileControllers.remove(item.id)?.dispose();
+                          },
+                          child: NotificationTile(
+                            label: item.receivedLabel,
+                            receivedAt: item.createdAt,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

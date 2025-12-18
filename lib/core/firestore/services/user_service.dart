@@ -79,7 +79,6 @@ class UserService {
     return '$y-$m-$day';
   }
 
-  /// Opslaan van vandaag (patient)
   Future<void> saveTodayHealthStats(String uid, Map<String, int> stats) async {
     final now = DateTime.now();
     final key = _dayKey(now);
@@ -115,7 +114,6 @@ class UserService {
     });
   }
 
-  /// Stream weekdata (ma → zo)
   Stream<QuerySnapshot<Map<String, dynamic>>> watchWeekHealthStats(
     String uid,
     DateTime weekStart,
@@ -144,7 +142,6 @@ class UserService {
   /// WEEKLY STATUS (%)
   /// =========================
 
-  /// Berekent weekstatus in percentage (0–100)
   Future<int> calculateWeeklyHealthPercentage(String uid) async {
     final now = DateTime.now();
     final monday = DateTime(
@@ -181,7 +178,7 @@ class UserService {
       final slaapritme = (data['slaapritme'] ?? 0) as int;
 
       totalScore += energie + eetlust + stemming + slaapritme;
-      totalPossible += 40; // max per dag
+      totalPossible += 40;
 
       print(
         '[UserService] day score = ${energie + eetlust + stemming + slaapritme}/40',
@@ -197,5 +194,42 @@ class UserService {
     print('[UserService] weekly percentage = $percentage%');
 
     return percentage.clamp(0, 100);
+  }
+
+  /// =========================
+  /// NOTIFICATIES (CAREGIVER)
+  /// =========================
+
+  Future<void> deleteReceivedNotification(
+    String caregiverUid,
+    String notificationId,
+  ) async {
+    print(
+      '[UserService] deleteReceivedNotification caregiverUid = $caregiverUid notificationId = $notificationId',
+    );
+
+    await _db
+        .collection('users')
+        .doc(caregiverUid)
+        .collection('received_notifications')
+        .doc(notificationId)
+        .delete();
+  }
+
+  Future<void> deleteAllReceivedNotifications(String caregiverUid) async {
+    print(
+      '[UserService] deleteAllReceivedNotifications caregiverUid = $caregiverUid',
+    );
+
+    final snapshot =
+        await _db
+            .collection('users')
+            .doc(caregiverUid)
+            .collection('received_notifications')
+            .get();
+
+    for (final doc in snapshot.docs) {
+      await doc.reference.delete();
+    }
   }
 }
