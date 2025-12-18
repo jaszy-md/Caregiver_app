@@ -7,6 +7,7 @@ import 'package:care_link/features/patient/state/joystick_controller.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:care_link/features/patient/presentation/widgets/buttons/joystick_btn.dart';
 import 'package:care_link/features/patient/presentation/widgets/notification_blocks/notification_block.dart';
+import 'package:care_link/features/patient/presentation/widgets/dialogs/concerned_notification_dialog.dart';
 
 class PatientNotificationsSection extends StatefulWidget {
   final List<NotificationItem> blocks;
@@ -34,6 +35,10 @@ class _PatientNotificationsSectionState
 
   late final AnimationController _joystickController;
   late final Animation<Offset> _joystickAnimation;
+
+  // 🔴 NIEUW: echte burst-detectie
+  int _rapidSendCount = 0;
+  DateTime? _lastSendAt;
 
   @override
   void initState() {
@@ -94,6 +99,26 @@ class _PatientNotificationsSectionState
     });
   }
 
+  // 🔴 NIEUW: detecteert 4 snelle opeenvolgende sends
+  bool _shouldShowConcernedDialog() {
+    final now = DateTime.now();
+
+    if (_lastSendAt == null) {
+      _rapidSendCount = 1;
+    } else {
+      final diff = now.difference(_lastSendAt!).inMilliseconds;
+
+      if (diff <= 700) {
+        _rapidSendCount++;
+      } else {
+        _rapidSendCount = 1;
+      }
+    }
+
+    _lastSendAt = now;
+    return _rapidSendCount >= 4;
+  }
+
   Future<void> _sendNotification(String label) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -105,6 +130,7 @@ class _PatientNotificationsSectionState
             .get();
 
     final patientName = userDoc.data()?['name'] ?? 'Onbekend';
+    final emergencyPhone = userDoc.data()?['emergencyContact'];
 
     await NotificationsService().sendNotificationToLinkedCaregivers(
       patientUid: user.uid,
@@ -114,7 +140,19 @@ class _PatientNotificationsSectionState
 
     widget.onNotificationSent();
 
-    debugPrint("📨 Verstuurd: $label");
+    if (_shouldShowConcernedDialog() && mounted && emergencyPhone != null) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (_) => ConcernedNotificationDialog(phoneNumber: emergencyPhone),
+      );
+
+      _rapidSendCount = 0;
+      _lastSendAt = null;
+    }
+
+    debugPrint('📨 Verstuurd: $label');
   }
 
   void _moveSelection(String direction) {
@@ -182,7 +220,7 @@ class _PatientNotificationsSectionState
               left: 0,
               right: 0,
               child: const Text(
-                "DUBBEL KLIK OM TE VERSTUREN",
+                'DUBBEL KLIK OM TE VERSTUREN',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'Poppins',
@@ -219,21 +257,20 @@ class _PatientNotificationsSectionState
                       itemBuilder: (context, index) {
                         final block = blocks[index];
 
-                        return GestureDetector(
-                          onDoubleTap: () async {
+                        return NotificationBlock(
+                          key: _tileKeys[index],
+                          label: block.label,
+                          imagePath: block.image,
+                          isLocalAsset: block.isLocalAsset,
+                          isActive: index == _activeIndex,
+                          onSelect: () => _selectTile(index),
+                          onSend: () async {
+                            _selectTile(index);
                             await _sendNotification(block.label);
                           },
-                          child: NotificationBlock(
-                            key: _tileKeys[index],
-                            label: block.label,
-                            imagePath: block.image,
-                            isLocalAsset: block.isLocalAsset,
-                            isActive: index == _activeIndex,
-                            onSelect: () => _selectTile(index),
-                            customWidth: tileWidth,
-                            customHeight: tileHeight,
-                            customIconSize: iconSize,
-                          ),
+                          customWidth: tileWidth,
+                          customHeight: tileHeight,
+                          customIconSize: iconSize,
                         );
                       },
                     ),

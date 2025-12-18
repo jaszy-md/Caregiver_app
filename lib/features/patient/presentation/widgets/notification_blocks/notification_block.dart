@@ -5,7 +5,13 @@ class NotificationBlock extends StatelessWidget {
   final String imagePath;
   final bool isLocalAsset;
   final bool isActive;
+
+  /// Wordt gebruikt voor selecteren (blauwe rand)
   final VoidCallback onSelect;
+
+  /// Wordt gebruikt voor versturen
+  final VoidCallback onSend;
+
   final Color activeColor;
 
   final double? customWidth;
@@ -19,6 +25,7 @@ class NotificationBlock extends StatelessWidget {
     required this.isLocalAsset,
     required this.isActive,
     required this.onSelect,
+    required this.onSend,
     this.activeColor = const Color.fromARGB(255, 5, 148, 145),
     this.customWidth,
     this.customHeight,
@@ -49,25 +56,26 @@ class NotificationBlock extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onSelect,
+
+      // 🔥 DIRECT selecteren, geen delay
+      onTapDown: (_) => onSelect(),
+
+      // 🔥 Dubbel tap = versturen
+      onDoubleTap: onSend,
+
       child: AnimatedContainer(
         duration: Duration.zero,
         curve: Curves.easeOut,
         width: width,
         height: height,
-
         margin: const EdgeInsets.symmetric(horizontal: 1.5, vertical: 2),
-
         decoration: BoxDecoration(
           color: Colors.white,
-
           borderRadius: BorderRadius.circular(8),
-
           border: Border.all(
             color: isActive ? activeColor : Colors.black,
             width: isActive ? 3.2 : 1.4,
           ),
-
           boxShadow:
               isActive
                   ? [
