@@ -46,10 +46,26 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
 
   Future<void> _loadStats() async {
     final user = await _userService.getUser(_uid);
-    final stats = user?['healthStats'] as Map<String, dynamic>?;
+    if (!mounted || user == null) return;
 
-    if (!mounted || stats == null) return;
+    final stats = user['healthStats'] as Map<String, dynamic>?;
+    final statsDate = user['healthStatsDate'] as String?;
 
+    final todayKey = DateTime.now();
+    final today =
+        '${todayKey.year.toString().padLeft(4, '0')}-'
+        '${todayKey.month.toString().padLeft(2, '0')}-'
+        '${todayKey.day.toString().padLeft(2, '0')}';
+
+    // 🔑 ALS NIET VAN VANDAAG → RESET
+    if (stats == null || statsDate != today) {
+      setState(() {
+        _mystats = {'Energie': 0, 'Eetlust': 0, 'Stemming': 0, 'Slaapritme': 0};
+      });
+      return;
+    }
+
+    // ✅ VANDAAG → LADEN
     setState(() {
       _mystats = {
         'Energie': stats['energie'] ?? 0,
@@ -64,7 +80,6 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
     await _userService.saveTodayHealthStats(_uid, _mystats);
     final user = await _userService.getUser(_uid);
 
-    // ✅ context zetten via notifier
     ref
         .read(statsContextProvider.notifier)
         .setContext(targetUid: _uid, displayName: user?['name']);

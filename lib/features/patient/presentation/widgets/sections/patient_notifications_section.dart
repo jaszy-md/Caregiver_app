@@ -1,4 +1,3 @@
-// patient_notifications_section.dart
 import 'package:care_link/core/firestore/services/notifications_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,16 +11,14 @@ import 'package:care_link/features/patient/presentation/widgets/notification_blo
 class PatientNotificationsSection extends StatefulWidget {
   final List<NotificationItem> blocks;
   final ValueChanged<String> onTileSelected;
-  final VoidCallback onNotificationSent;
-
-  // timeout van bovenaf
+  final Future<bool> Function() onNotificationAttempt;
   final bool isTimeoutActive;
 
   const PatientNotificationsSection({
     super.key,
     required this.blocks,
     required this.onTileSelected,
-    required this.onNotificationSent,
+    required this.onNotificationAttempt,
     required this.isTimeoutActive,
   });
 
@@ -100,11 +97,13 @@ class _PatientNotificationsSectionState
   }
 
   Future<void> _sendNotification(String label) async {
-    // TIMEOUT = HARD BLOCK
     if (widget.isTimeoutActive) {
-      debugPrint('⏳ Timeout actief – versturen geblokkeerd');
+      debugPrint('Timeout actief – versturen geblokkeerd');
       return;
     }
+
+    final allowed = await widget.onNotificationAttempt();
+    if (!allowed) return;
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -123,8 +122,7 @@ class _PatientNotificationsSectionState
       label: label,
     );
 
-    widget.onNotificationSent();
-    debugPrint('📨 Verstuurd: $label');
+    debugPrint('NOTI Verstuurd: $label');
   }
 
   void _moveSelection(String direction) {

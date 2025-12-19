@@ -96,6 +96,7 @@ class UserService {
     print('[UserService] saveTodayHealthStats key = $key');
     print('[UserService] saveTodayHealthStats payload = $payload');
 
+    // Dagelijkse historie
     await _db
         .collection('users')
         .doc(uid)
@@ -103,6 +104,7 @@ class UserService {
         .doc(key)
         .set(payload, SetOptions(merge: true));
 
+    // User-root (laatste dag + datum)
     await _db.collection('users').doc(uid).update({
       'healthStats': {
         'eetlust': payload['eetlust'],
@@ -110,6 +112,7 @@ class UserService {
         'stemming': payload['stemming'],
         'slaapritme': payload['slaapritme'],
       },
+      'healthStatsDate': key, // ← NIEUW (dag waarop deze stats horen)
       'healthStatsUpdatedAt': FieldValue.serverTimestamp(),
     });
   }
