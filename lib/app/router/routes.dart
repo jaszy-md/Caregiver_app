@@ -1,31 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-// LAYOUT
 import 'package:care_link/features/shared/presentation/widgets/layout/main_layout/main_layout.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/layout/caregiver_footer.dart';
 import 'package:care_link/features/patient/presentation/widgets/layout/patient_footer.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/layout/caregiver_sub_header.dart';
 import 'package:care_link/features/patient/presentation/widgets/layout/patient_sub_header.dart';
-
-// SCREENS
 import 'package:care_link/features/splash/presentation/screens/splash_screen.dart';
 import 'package:care_link/features/auth/presentation/screens/login_screen.dart';
 import 'package:care_link/features/prehome/presentation/screens/prehome_screen.dart';
-
 import 'package:care_link/features/caregiver/presentation/screens/home/caregiver_home_screen.dart';
 import 'package:care_link/features/caregiver/presentation/screens/profile/caregiver_profile_screen.dart';
 import 'package:care_link/features/caregiver/presentation/screens/caregiver_id/caregiver_id_screen.dart';
-
 import 'package:care_link/features/patient/presentation/screens/home/patient_home_screen.dart';
 import 'package:care_link/features/patient/presentation/screens/profile/patient_profile_screen.dart';
 import 'package:care_link/features/patient/presentation/screens/healthcheck/healthcheck_screen.dart';
 import 'package:care_link/features/patient/presentation/screens/connect/connect_screen.dart';
-
 import 'package:care_link/features/shared/presentation/screens/stats/stats_screen.dart';
 import 'package:care_link/features/shared/presentation/screens/help_guide/help_guide_screen.dart';
 
-/// Instant transition helper (geen animaties)
 CustomTransitionPage instantScreen(Widget child) {
   return CustomTransitionPage(
     child: child,
@@ -35,7 +27,6 @@ CustomTransitionPage instantScreen(Widget child) {
   );
 }
 
-// Alleen EXCLUSIEVE routes bepalen context
 final caregiverRoutes = <String>[
   '/caregiverhome',
   '/caregiverprofile',
@@ -49,17 +40,14 @@ final patientRoutes = <String>[
   '/connect',
 ];
 
-// Onthoudt de laatst bekende context
 String? _lastSection;
 
 final appRoutes = <RouteBase>[
-  // Splash buiten de Shell
   GoRoute(
     path: '/splash',
     pageBuilder: (context, state) => instantScreen(const SplashScreen()),
   ),
 
-  // Shell met header/footer
   ShellRoute(
     builder: (context, state, child) {
       final uri = state.uri.toString();
@@ -67,14 +55,12 @@ final appRoutes = <RouteBase>[
       Widget? footer;
       Widget? subHeader;
 
-      // Context alleen aanpassen bij exclusieve routes
       if (caregiverRoutes.any((r) => uri.startsWith(r))) {
         _lastSection = 'caregiver';
       } else if (patientRoutes.any((r) => uri.startsWith(r))) {
         _lastSection = 'patient';
       }
 
-      // Footer + subheader volgen de laatst bekende context
       if (_lastSection == 'caregiver') {
         footer = const CaregiverFooter();
         subHeader = const CaregiverSubHeader();
@@ -83,7 +69,6 @@ final appRoutes = <RouteBase>[
         subHeader = const PatientSubHeader();
       }
 
-      // Login: geen header, geen footer
       if (uri.startsWith('/login')) {
         return MainLayout(
           showHeader: false,
@@ -93,7 +78,6 @@ final appRoutes = <RouteBase>[
         );
       }
 
-      // Prehome: header wel, footer niet
       if (uri.startsWith('/prehome')) {
         return MainLayout(
           showHeader: true,
@@ -103,7 +87,6 @@ final appRoutes = <RouteBase>[
         );
       }
 
-      // Alle andere routes
       return MainLayout(
         showHeader: true,
         subHeader: subHeader,
@@ -113,7 +96,6 @@ final appRoutes = <RouteBase>[
     },
 
     routes: [
-      // AUTH
       GoRoute(
         path: '/login',
         pageBuilder: (c, s) => instantScreen(const LoginScreen()),
@@ -155,7 +137,6 @@ final appRoutes = <RouteBase>[
         pageBuilder: (c, s) => instantScreen(const ConnectScreen()),
       ),
 
-      // SHARED
       GoRoute(
         path: '/stats',
         pageBuilder: (c, s) => instantScreen(const StatsScreen()),
