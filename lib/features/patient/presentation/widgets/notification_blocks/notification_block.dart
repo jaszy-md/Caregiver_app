@@ -6,10 +6,8 @@ class NotificationBlock extends StatelessWidget {
   final bool isLocalAsset;
   final bool isActive;
 
-  /// Wordt gebruikt voor selecteren (blauwe rand)
   final VoidCallback onSelect;
 
-  /// Wordt gebruikt voor versturen
   final VoidCallback onSend;
 
   final Color activeColor;
@@ -57,10 +55,8 @@ class NotificationBlock extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
 
-      // 🔥 DIRECT selecteren, geen delay
       onTapDown: (_) => onSelect(),
 
-      // 🔥 Dubbel tap = versturen
       onDoubleTap: onSend,
 
       child: AnimatedContainer(

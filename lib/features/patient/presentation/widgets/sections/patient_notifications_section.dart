@@ -1,3 +1,4 @@
+// patient_notifications_section.dart
 import 'package:care_link/core/firestore/services/notifications_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,18 +8,21 @@ import 'package:care_link/features/patient/state/joystick_controller.dart';
 import 'package:care_link/gen/assets.gen.dart';
 import 'package:care_link/features/patient/presentation/widgets/buttons/joystick_btn.dart';
 import 'package:care_link/features/patient/presentation/widgets/notification_blocks/notification_block.dart';
-import 'package:care_link/features/patient/presentation/widgets/dialogs/concerned_notification_dialog.dart';
 
 class PatientNotificationsSection extends StatefulWidget {
   final List<NotificationItem> blocks;
   final ValueChanged<String> onTileSelected;
   final VoidCallback onNotificationSent;
 
+  // timeout van bovenaf
+  final bool isTimeoutActive;
+
   const PatientNotificationsSection({
     super.key,
     required this.blocks,
     required this.onTileSelected,
     required this.onNotificationSent,
+    required this.isTimeoutActive,
   });
 
   @override
@@ -35,10 +39,6 @@ class _PatientNotificationsSectionState
 
   late final AnimationController _joystickController;
   late final Animation<Offset> _joystickAnimation;
-
-  // 🔴 NIEUW: echte burst-detectie
-  int _rapidSendCount = 0;
-  DateTime? _lastSendAt;
 
   @override
   void initState() {
@@ -99,27 +99,13 @@ class _PatientNotificationsSectionState
     });
   }
 
-  // 🔴 NIEUW: detecteert 4 snelle opeenvolgende sends
-  bool _shouldShowConcernedDialog() {
-    final now = DateTime.now();
-
-    if (_lastSendAt == null) {
-      _rapidSendCount = 1;
-    } else {
-      final diff = now.difference(_lastSendAt!).inMilliseconds;
-
-      if (diff <= 700) {
-        _rapidSendCount++;
-      } else {
-        _rapidSendCount = 1;
-      }
+  Future<void> _sendNotification(String label) async {
+    // TIMEOUT = HARD BLOCK
+    if (widget.isTimeoutActive) {
+      debugPrint('⏳ Timeout actief – versturen geblokkeerd');
+      return;
     }
 
-    _lastSendAt = now;
-    return _rapidSendCount >= 4;
-  }
-
-  Future<void> _sendNotification(String label) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
@@ -130,7 +116,6 @@ class _PatientNotificationsSectionState
             .get();
 
     final patientName = userDoc.data()?['name'] ?? 'Onbekend';
-    final emergencyPhone = userDoc.data()?['emergencyContact'];
 
     await NotificationsService().sendNotificationToLinkedCaregivers(
       patientUid: user.uid,
@@ -139,19 +124,6 @@ class _PatientNotificationsSectionState
     );
 
     widget.onNotificationSent();
-
-    if (_shouldShowConcernedDialog() && mounted && emergencyPhone != null) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder:
-            (_) => ConcernedNotificationDialog(phoneNumber: emergencyPhone),
-      );
-
-      _rapidSendCount = 0;
-      _lastSendAt = null;
-    }
-
     debugPrint('📨 Verstuurd: $label');
   }
 
@@ -214,7 +186,6 @@ class _PatientNotificationsSectionState
                 filterQuality: FilterQuality.high,
               ),
             ),
-
             Positioned(
               top: verticalPadding - 32,
               left: 0,
@@ -231,7 +202,6 @@ class _PatientNotificationsSectionState
                 ),
               ),
             ),
-
             Positioned(
               top: verticalPadding,
               bottom: verticalPadding,
@@ -278,7 +248,6 @@ class _PatientNotificationsSectionState
                 ),
               ),
             ),
-
             if (JoystickController().active)
               Positioned(
                 bottom: 6,

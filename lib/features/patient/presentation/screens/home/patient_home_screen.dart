@@ -1,7 +1,9 @@
+// patient_home_screen.dart
 import 'dart:async';
 
 import 'package:care_link/core/riverpod_providers/notifications_providers.dart';
 import 'package:care_link/features/patient/presentation/widgets/dialogs/concerned_notification_dialog.dart';
+import 'package:care_link/features/patient/presentation/widgets/sections/notification_timeout_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:care_link/gen/assets.gen.dart';
@@ -26,10 +28,39 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen>
   static const int _threshold = 7;
   static const Duration _window = Duration(seconds: 3);
 
-  bool _dialogShown = false;
+  // persistent binnen app
+  static DateTime? _persistedTimeoutUntil;
+  static int _persistedConcernedDialogCount = 0;
+
+  int _concernedDialogCount = 0;
+  DateTime? _timeoutUntil;
+
+  bool get _isTimeoutActive {
+    if (_timeoutUntil == null) return false;
+    return DateTime.now().isBefore(_timeoutUntil!);
+  }
 
   @override
   bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _timeoutUntil = _persistedTimeoutUntil;
+    _concernedDialogCount = _persistedConcernedDialogCount;
+  }
+
+  void _setTimeoutUntil(DateTime? value) {
+    setState(() {
+      _timeoutUntil = value;
+      _persistedTimeoutUntil = value;
+    });
+  }
+
+  void _setConcernedDialogCount(int value) {
+    _concernedDialogCount = value;
+    _persistedConcernedDialogCount = value;
+  }
 
   void _onTileSelected(String text) {
     _resetTimer?.cancel();
@@ -39,7 +70,6 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen>
     });
   }
 
-  /// 👉 Haal noodnummer op uit user-tabel (fallback = 112)
   Future<String> _getEmergencyPhoneNumber() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
@@ -58,32 +88,41 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen>
     return emergencyContact.trim();
   }
 
-  void _onNotificationSent() async {
-    final now = DateTime.now();
+  void _startTimeout() {
+    _setTimeoutUntil(DateTime.now().add(const Duration(minutes: 5)));
+    _sentTimestamps.clear();
+  }
 
+  void _onNotificationSent() async {
+    if (_isTimeoutActive) return;
+
+    final now = DateTime.now();
     _sentTimestamps.removeWhere((t) => now.difference(t) > _window);
 
-    if (_sentTimestamps.length >= _threshold - 1 && !_dialogShown) {
-      _dialogShown = true;
+    if (_sentTimestamps.length >= _threshold - 1) {
+      _setConcernedDialogCount(_concernedDialogCount + 1);
+
+      if (_concernedDialogCount >= 3) {
+        _startTimeout();
+        return;
+      }
 
       final phoneNumber = await _getEmergencyPhoneNumber();
-
       if (!mounted) return;
 
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => ConcernedNotificationDialog(phoneNumber: phoneNumber),
-      ).then((_) {
-        _sentTimestamps.clear();
-        _dialogShown = false;
-      });
+      );
+
+      _sentTimestamps.clear();
+      return;
     }
 
     _sentTimestamps.add(now);
 
     _resetTimer?.cancel();
-
     setState(() {
       _tempText = 'Verzonden! ✓';
     });
@@ -152,12 +191,36 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen>
               ),
               const SizedBox(height: 15),
               Expanded(
-                child: Center(
-                  child: PatientNotificationsSection(
-                    blocks: blocks,
-                    onTileSelected: _onTileSelected,
-                    onNotificationSent: _onNotificationSent,
-                  ),
+                child: Stack(
+                  children: [
+                    // 🔒 BLOKKEER DE NOTIFICATIES ALS TIMEOUT ACTIEF IS
+                    AbsorbPointer(
+                      absorbing: _isTimeoutActive,
+                      child: Center(
+                        child: PatientNotificationsSection(
+                          blocks: blocks,
+                          onTileSelected: _onTileSelected,
+                          onNotificationSent: _onNotificationSent,
+                          isTimeoutActive: _isTimeoutActive,
+                        ),
+                      ),
+                    ),
+
+                    // 🧱 TIMEOUT KAART BOVENOP (KLIKBAAR)
+                    if (_isTimeoutActive && _timeoutUntil != null)
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: NotificationTimeoutSection(
+                            timeoutUntil: _timeoutUntil!,
+                            onFinished: () {
+                              _setTimeoutUntil(null);
+                            },
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
