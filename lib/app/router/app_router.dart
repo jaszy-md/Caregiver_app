@@ -7,6 +7,11 @@ class AppRouter {
   static String? _cachedRole;
   static String? _cachedUid;
 
+  static void clearRoleCache() {
+    _cachedRole = null;
+    _cachedUid = null;
+  }
+
   static Future<String?> _getUserRole(String uid) async {
     if (_cachedUid == uid && _cachedRole != null) return _cachedRole;
 
@@ -15,10 +20,10 @@ class AppRouter {
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
       final role = doc.data()?['role'];
 
-      if (role is String && role.trim().isNotEmpty) {
+      if (role is String && role.isNotEmpty) {
         _cachedUid = uid;
-        _cachedRole = role.trim();
-        return _cachedRole;
+        _cachedRole = role;
+        return role;
       }
     } catch (_) {}
 
@@ -26,14 +31,7 @@ class AppRouter {
   }
 
   static String _homeForRole(String role) {
-    // Pas aan als jouw routes anders heten
-    if (role == 'caregiver') return '/caregiverhome';
-    return '/patienthome';
-  }
-
-  static void clearRoleCache() {
-    _cachedRole = null;
-    _cachedUid = null;
+    return role == 'caregiver' ? '/caregiverhome' : '/patienthome';
   }
 
   static final GoRouter router = GoRouter(
@@ -44,50 +42,37 @@ class AppRouter {
       final user = FirebaseAuth.instance.currentUser;
       final location = state.matchedLocation;
 
-      final isLoggedIn = user != null;
-      final isAtSplash = location == '/splash';
-      final isAtLogin = location == '/login';
-      final isAtPrehome = location == '/prehome';
+      final loggedIn = user != null;
+      final atLogin = location == '/login';
+      final atSplash = location == '/splash';
+      final atPrehome = location == '/prehome';
 
-      // Niet ingelogd: alles naar login (behalve login zelf)
-      if (!isLoggedIn) {
+      // 🔴 UITGELOGD
+      if (!loggedIn) {
         clearRoleCache();
-        return isAtLogin ? null : '/login';
+        return atLogin ? null : '/login';
       }
 
-      // Ingelogd: rol ophalen (of null als nog niet gezet)
-      final role = await _getUserRole(user!.uid);
+      // 🟡 INGLOGD → rol ophalen
+      final role = await _getUserRole(user.uid);
 
-      // Splash: direct doorsturen
-      if (isAtSplash) {
+      // Splash afhandelen
+      if (atSplash) {
         return role == null ? '/prehome' : _homeForRole(role);
       }
 
-      // Ingelogd en op login: blokkeren
-      if (isAtLogin) {
+      // Login blokkeren als je al ingelogd bent
+      if (atLogin) {
         return role == null ? '/prehome' : _homeForRole(role);
       }
 
-      // Rol bestaat: prehome blokkeren
-      if (role != null && isAtPrehome) {
+      // Prehome blokkeren als rol al gekozen is
+      if (role != null && atPrehome) {
         return _homeForRole(role);
       }
 
-      // Rol bestaat: optioneel route-guard per rol (voorkomt "patient" die caregiver routes opent)
-      if (role != null) {
-        final isCaregiver = role == 'caregiver';
-        final isOnCaregiverRoute = location.startsWith('/caregiver');
-        final isOnPatientRoute =
-            location.startsWith('/patient') ||
-            location == '/healthcheck' ||
-            location == '/connect';
-
-        if (isCaregiver && isOnPatientRoute) return '/caregiverhome';
-        if (!isCaregiver && isOnCaregiverRoute) return '/patienthome';
-      }
-
-      // Rol bestaat niet: forceer prehome (behalve als je al op prehome zit)
-      if (role == null && !isAtPrehome) {
+      // Rol bestaat niet → altijd naar prehome
+      if (role == null && !atPrehome) {
         return '/prehome';
       }
 
