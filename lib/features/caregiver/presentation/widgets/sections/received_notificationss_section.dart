@@ -1,7 +1,7 @@
 import 'package:care_link/core/firestore/models/received_notification.dart';
 import 'package:care_link/core/firestore/services/user_service.dart';
 import 'package:care_link/core/riverpod_providers/received_notifications_providers.dart';
-import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_tile.dart';
+import 'package:care_link/features/caregiver/presentation/widgets/notifications/received_notification_tile.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_title_tile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -181,9 +181,10 @@ class _ReceivedNotificationsSectionState
                             );
                             _tileControllers.remove(item.id)?.dispose();
                           },
-                          child: NotificationTile(
+                          child: ReceivedNotificationTile(
                             label: item.receivedLabel,
                             receivedAt: item.createdAt,
+                            patientName: item.patientName,
                           ),
                         ),
                       ],

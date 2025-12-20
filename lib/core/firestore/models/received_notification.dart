@@ -6,7 +6,7 @@ class ReceivedNotification {
   final String patientUid;
   final String receivedLabel;
   final DateTime createdAt;
-  final String userName;
+  final String patientName;
 
   const ReceivedNotification({
     required this.id,
@@ -14,14 +14,24 @@ class ReceivedNotification {
     required this.patientUid,
     required this.receivedLabel,
     required this.createdAt,
-    required this.userName,
+    required this.patientName,
   });
 
-  /// Maak model vanuit Firestore document
   factory ReceivedNotification.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final data = doc.data() ?? <String, dynamic>{};
+
+    // ✅ patientName → fallback naar userName → eerste naam pakken
+    final rawName =
+        (data['patientName'] ?? data['userName'] ?? '').toString().trim();
+
+    final firstName = rawName.isNotEmpty ? rawName.split(' ').first : '';
+
+    // 🔍 DEBUG (mag je later weghalen)
+    print('[ReceivedNotification] id=${doc.id}');
+    print('[ReceivedNotification] rawName="$rawName"');
+    print('[ReceivedNotification] firstName="$firstName"');
 
     return ReceivedNotification(
       id: doc.id,
@@ -29,18 +39,17 @@ class ReceivedNotification {
       patientUid: data['patientUid'] as String? ?? '',
       receivedLabel: data['receivedLabel'] as String? ?? '',
       createdAt: _parseDate(data['createdAt']),
-      userName: data['userName'] as String? ?? '',
+      patientName: firstName,
     );
   }
 
-  /// Voor opslaan in Firestore
   Map<String, dynamic> toMap() {
     return {
       'caregiverUid': caregiverUid,
       'patientUid': patientUid,
       'receivedLabel': receivedLabel,
       'createdAt': Timestamp.fromDate(createdAt),
-      'userName': userName,
+      'patientName': patientName,
     };
   }
 }
