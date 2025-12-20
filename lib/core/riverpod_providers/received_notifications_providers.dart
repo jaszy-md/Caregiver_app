@@ -14,5 +14,8 @@ final receivedNotificationsProvider =
       ref,
       caregiverUid,
     ) {
+      // 🔥 CRUCIAAL: Firestore stream warm houden
+      ref.keepAlive();
+
       return ref.read(receivedNotificationServiceProvider).watch(caregiverUid);
     });

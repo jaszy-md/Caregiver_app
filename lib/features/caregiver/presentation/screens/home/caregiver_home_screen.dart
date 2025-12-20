@@ -1,10 +1,7 @@
-import 'package:care_link/core/firestore/models/received_notification.dart';
 import 'package:care_link/core/firestore/services/user_service.dart';
-import 'package:care_link/core/riverpod_providers/received_notifications_providers.dart';
 import 'package:care_link/core/riverpod_providers/stats_context_provider.dart';
 import 'package:care_link/core/riverpod_providers/active_patient_provider.dart';
-import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_tile.dart';
-import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_title_tile.dart';
+import 'package:care_link/features/caregiver/presentation/widgets/sections/received_notificationss_section.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/tiles/week-state-tile.dart';
 import 'package:care_link/features/shared/presentation/widgets/tiles/line_dot_title.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,7 +21,6 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
   late final AnimationController _weekTileController;
   late final Animation<Offset> _weekTileAnimation;
 
-  final Map<String, AnimationController> _tileControllers = {};
   String? _patientUid;
 
   @override
@@ -43,9 +39,8 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
       CurvedAnimation(parent: _weekTileController, curve: Curves.easeOutCubic),
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initPatientContext();
-    });
+    // ✅ DIRECT starten, NIET postFrame
+    _initPatientContext();
   }
 
   Future<void> _initPatientContext() async {
@@ -54,21 +49,16 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
 
     final userService = UserService();
 
-    // 🔑 1. PROBEER persisted actieve patiënt (Firestore)
     final storedActiveUid = await userService.getActivePatientForCaregiver(
       caregiverUid,
     );
 
-    String? resolvedPatientUid = storedActiveUid;
-
-    // 🔑 2. Geen opgeslagen keuze → pak eerste gekoppelde patiënt
-    resolvedPatientUid ??= await userService.findPatientForCaregiver(
-      caregiverUid,
-    );
+    final resolvedPatientUid =
+        storedActiveUid ??
+        await userService.findPatientForCaregiver(caregiverUid);
 
     if (!mounted || resolvedPatientUid == null) return;
 
-    // 🔑 3. Context laden
     final patient = await userService.getUser(resolvedPatientUid);
     final weekPercentage = await userService.calculateWeeklyHealthPercentage(
       resolvedPatientUid,
@@ -76,7 +66,6 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
 
     if (!mounted) return;
 
-    // 🔑 4. State + providers syncen
     setState(() {
       _patientUid = resolvedPatientUid;
     });
@@ -93,7 +82,6 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
           weekPercentage: weekPercentage,
         );
 
-    // 🔑 5. Persist keuze (alleen nodig bij fallback)
     if (storedActiveUid == null) {
       await userService.setActivePatientForCaregiver(
         caregiverUid: caregiverUid,
@@ -106,26 +94,16 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
 
   @override
   void dispose() {
-    for (final ctrl in _tileControllers.values) {
-      ctrl.dispose();
-    }
-    _tileControllers.clear();
     _weekTileController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom + 8;
     final caregiverUid = FirebaseAuth.instance.currentUser?.uid;
-
     if (caregiverUid == null) {
       return const Center(child: Text('Niet ingelogd'));
     }
-
-    final asyncNotifications = ref.watch(
-      receivedNotificationsProvider(caregiverUid),
-    );
 
     return SafeArea(
       child: Column(
@@ -164,100 +142,9 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
 
           const SizedBox(height: 10),
 
-          NotificationTitleTile(
-            label: 'Notificaties',
-            onClearAll: () async {
-              final userService = UserService();
-
-              for (final ctrl in _tileControllers.values) {
-                ctrl.dispose();
-              }
-              _tileControllers.clear();
-
-              ref.invalidate(receivedNotificationsProvider(caregiverUid));
-
-              await userService.deleteAllReceivedNotifications(caregiverUid);
-            },
-          ),
-
-          const SizedBox(height: 3),
-
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                bottom: bottomPadding,
-              ),
-              child: asyncNotifications.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Center(child: Text('Fout bij laden')),
-                data: (items) {
-                  if (items.isEmpty) {
-                    return const Center(
-                      child: Text('Geen notificaties ontvangen'),
-                    );
-                  }
-                  return _buildList(items, caregiverUid);
-                },
-              ),
-            ),
-          ),
+          // ✅ notifications volledig losgekoppeld
+          const Expanded(child: ReceivedNotificationsSection()),
         ],
-      ),
-    );
-  }
-
-  Widget _buildList(List<ReceivedNotification> items, String caregiverUid) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        children:
-            items.map((item) {
-              _tileControllers.putIfAbsent(
-                item.id,
-                () => AnimationController(
-                  vsync: this,
-                  duration: const Duration(milliseconds: 650),
-                )..forward(),
-              );
-
-              final ctrl = _tileControllers[item.id]!;
-
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, -0.4),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(parent: ctrl, curve: Curves.easeOutCubic),
-                ),
-                child: FadeTransition(
-                  opacity: CurvedAnimation(parent: ctrl, curve: Curves.easeOut),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 7,
-                    ),
-                    child: Dismissible(
-                      key: ValueKey(item.id),
-                      direction: DismissDirection.endToStart,
-                      onDismissed: (_) async {
-                        final userService = UserService();
-                        await userService.deleteReceivedNotification(
-                          caregiverUid,
-                          item.id,
-                        );
-                        _tileControllers.remove(item.id)?.dispose();
-                      },
-                      child: NotificationTile(
-                        label: item.receivedLabel,
-                        receivedAt: item.createdAt,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
       ),
     );
   }
