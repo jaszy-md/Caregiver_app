@@ -1,3 +1,4 @@
+import 'package:care_link/features/caregiver/presentation/widgets/sections/linked_caregivers_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +15,8 @@ class CaregiverIdScreen extends ConsumerStatefulWidget {
 class _CaregiverIdScreenState extends ConsumerState<CaregiverIdScreen> {
   bool copied = false;
 
+  final ScrollController _pageScrollController = ScrollController();
+
   void handleCopy(String text) {
     Clipboard.setData(ClipboardData(text: text));
 
@@ -21,7 +24,6 @@ class _CaregiverIdScreenState extends ConsumerState<CaregiverIdScreen> {
       copied = true;
     });
 
-    // Na 10 seconden terug naar copy icoon
     Future.delayed(const Duration(seconds: 10), () {
       if (mounted) {
         setState(() {
@@ -29,6 +31,27 @@ class _CaregiverIdScreenState extends ConsumerState<CaregiverIdScreen> {
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _pageScrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _scrollPageAfterExpand() async {
+    await Future.delayed(const Duration(milliseconds: 320));
+
+    if (!mounted) return;
+    if (!_pageScrollController.hasClients) return;
+
+    final max = _pageScrollController.position.maxScrollExtent;
+
+    await _pageScrollController.animateTo(
+      max,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOut,
+    );
   }
 
   @override
@@ -46,62 +69,67 @@ class _CaregiverIdScreenState extends ConsumerState<CaregiverIdScreen> {
         final name = data?['name'] ?? '';
         final userID = data?['userID'] ?? '------';
 
-        return Align(
-          alignment: Alignment.topCenter,
-          child: SizedBox(
-            width: imageWidth,
-            height: imageHeight,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: Assets.images.caregiverId.image(
-                    fit: BoxFit.contain,
-                    alignment: Alignment.topCenter,
-                  ),
-                ),
-
-                Positioned(
-                  right: imageWidth * 0.22,
-                  bottom: imageHeight * 0.13,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        return SingleChildScrollView(
+          controller: _pageScrollController,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Align(
+                alignment: Alignment.topCenter,
+                child: SizedBox(
+                  width: imageWidth,
+                  height: imageHeight,
+                  child: Stack(
                     children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: imageWidth * 0.09),
-                        child: Text(
-                          name,
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w300,
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),
+                      Positioned.fill(
+                        child: Assets.images.caregiverId2.image(
+                          fit: BoxFit.contain,
+                          alignment: Alignment.topCenter,
                         ),
                       ),
-                      const SizedBox(height: 2),
-
-                      Padding(
-                        padding: EdgeInsets.only(left: imageWidth * 0.09),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                      Positioned(
+                        right: imageWidth * 0.22,
+                        bottom: imageHeight * 0.13,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              userID,
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontWeight: FontWeight.w500,
-                                fontSize: 20,
-                                color: Colors.white,
+                            Padding(
+                              padding: EdgeInsets.only(left: imageWidth * 0.09),
+                              child: Text(
+                                name,
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w300,
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 6),
-
-                            GestureDetector(
-                              onTap: () => handleCopy(userID),
-                              child: Icon(
-                                copied ? Icons.check : Icons.copy,
-                                color: Colors.white,
-                                size: 18,
+                            const SizedBox(height: 2),
+                            Padding(
+                              padding: EdgeInsets.only(left: imageWidth * 0.09),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    userID,
+                                    style: const TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 20,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  GestureDetector(
+                                    onTap: () => handleCopy(userID),
+                                    child: Icon(
+                                      copied ? Icons.check : Icons.copy,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -110,8 +138,20 @@ class _CaregiverIdScreenState extends ConsumerState<CaregiverIdScreen> {
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 5),
+
+              LinkedCaregiversSection(
+                onExpandedChanged: (isExpanded) {
+                  if (isExpanded) {
+                    _scrollPageAfterExpand();
+                  }
+                },
+              ),
+
+              const SizedBox(height: 30),
+            ],
           ),
         );
       },

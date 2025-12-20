@@ -12,11 +12,14 @@ class StatsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statsContext = ref.watch(statsContextProvider);
 
-    final String title =
+    // ✅ alleen eerste naam pakken
+    final String? firstName =
         statsContext?.displayName != null &&
-                statsContext!.displayName!.isNotEmpty
-            ? "${statsContext.displayName}'s grafiek"
-            : 'Grafiek';
+                statsContext!.displayName!.trim().isNotEmpty
+            ? statsContext.displayName!.trim().split(' ').first
+            : null;
+
+    final String title = firstName != null ? "$firstName's grafiek" : 'Grafiek';
 
     final String? targetUid = statsContext?.targetUid;
 
@@ -26,7 +29,7 @@ class StatsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 HEADER – altijd zichtbaar
+            // HEADER
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -41,7 +44,6 @@ class StatsScreen extends ConsumerWidget {
 
             const SizedBox(height: 10),
 
-            // 🔹 INFO bij lege context
             if (targetUid == null)
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
@@ -57,12 +59,11 @@ class StatsScreen extends ConsumerWidget {
 
             const SizedBox(height: 10),
 
-            // 🔹 GRAPH – altijd renderen
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: GraphSection(
-                  // ⛑️ lege graph fallback
+                  key: ValueKey(targetUid),
                   userId: targetUid ?? '__empty__',
                 ),
               ),

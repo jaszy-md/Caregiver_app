@@ -7,6 +7,13 @@ class AppRouter {
   static String? _cachedRole;
   static String? _cachedUid;
 
+  // 🔑 SPLASH GATE
+  static bool _splashCompleted = false;
+
+  static void markSplashCompleted() {
+    _splashCompleted = true;
+  }
+
   static void clearRoleCache() {
     _cachedRole = null;
     _cachedUid = null;
@@ -15,17 +22,15 @@ class AppRouter {
   static Future<String?> _getUserRole(String uid) async {
     if (_cachedUid == uid && _cachedRole != null) return _cachedRole;
 
-    try {
-      final doc =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      final role = doc.data()?['role'];
+    final doc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
-      if (role is String && role.isNotEmpty) {
-        _cachedUid = uid;
-        _cachedRole = role;
-        return role;
-      }
-    } catch (_) {}
+    final role = doc.data()?['role'];
+    if (role is String && role.isNotEmpty) {
+      _cachedUid = uid;
+      _cachedRole = role;
+      return role;
+    }
 
     return null;
   }
@@ -39,39 +44,43 @@ class AppRouter {
     routes: appRoutes,
 
     redirect: (context, state) async {
-      final user = FirebaseAuth.instance.currentUser;
       final location = state.matchedLocation;
+      final user = FirebaseAuth.instance.currentUser;
 
-      final loggedIn = user != null;
-      final atLogin = location == '/login';
       final atSplash = location == '/splash';
+      final atLogin = location == '/login';
       final atPrehome = location == '/prehome';
 
+      // 🟢 SPLASH MAG ALTIJD EERST ZICHTBAAR ZIJN
+      if (atSplash && !_splashCompleted) {
+        return null;
+      }
+
+      // 🟡 SPLASH KLAAR → ROUTE BESLISSEN
+      if (atSplash && _splashCompleted) {
+        if (user == null) return '/login';
+
+        final role = await _getUserRole(user.uid);
+        return role == null ? '/prehome' : _homeForRole(role);
+      }
+
       // 🔴 UITGELOGD
-      if (!loggedIn) {
+      if (user == null) {
         clearRoleCache();
         return atLogin ? null : '/login';
       }
 
-      // 🟡 INGLOGD → rol ophalen
+      // 🟢 INGLOGD
       final role = await _getUserRole(user.uid);
 
-      // Splash afhandelen
-      if (atSplash) {
-        return role == null ? '/prehome' : _homeForRole(role);
-      }
-
-      // Login blokkeren als je al ingelogd bent
       if (atLogin) {
         return role == null ? '/prehome' : _homeForRole(role);
       }
 
-      // Prehome blokkeren als rol al gekozen is
       if (role != null && atPrehome) {
         return _homeForRole(role);
       }
 
-      // Rol bestaat niet → altijd naar prehome
       if (role == null && !atPrehome) {
         return '/prehome';
       }

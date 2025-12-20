@@ -2,6 +2,7 @@ import 'package:care_link/core/firestore/models/received_notification.dart';
 import 'package:care_link/core/firestore/services/user_service.dart';
 import 'package:care_link/core/riverpod_providers/received_notifications_providers.dart';
 import 'package:care_link/core/riverpod_providers/stats_context_provider.dart';
+import 'package:care_link/core/riverpod_providers/active_patient_provider.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_tile.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/notifications/notification_title_tile.dart';
 import 'package:care_link/features/caregiver/presentation/widgets/tiles/week-state-tile.dart';
@@ -42,35 +43,63 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
       CurvedAnimation(parent: _weekTileController, curve: Curves.easeOutCubic),
     );
 
-    _resolvePatientAndStats();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initPatientContext();
+    });
   }
 
-  Future<void> _resolvePatientAndStats() async {
+  Future<void> _initPatientContext() async {
     final caregiverUid = FirebaseAuth.instance.currentUser?.uid;
     if (caregiverUid == null) return;
 
     final userService = UserService();
-    final patientUid = await userService.findPatientForCaregiver(caregiverUid);
-    if (!mounted || patientUid == null) return;
 
-    final patient = await userService.getUser(patientUid);
+    // 🔑 1. PROBEER persisted actieve patiënt (Firestore)
+    final storedActiveUid = await userService.getActivePatientForCaregiver(
+      caregiverUid,
+    );
+
+    String? resolvedPatientUid = storedActiveUid;
+
+    // 🔑 2. Geen opgeslagen keuze → pak eerste gekoppelde patiënt
+    resolvedPatientUid ??= await userService.findPatientForCaregiver(
+      caregiverUid,
+    );
+
+    if (!mounted || resolvedPatientUid == null) return;
+
+    // 🔑 3. Context laden
+    final patient = await userService.getUser(resolvedPatientUid);
     final weekPercentage = await userService.calculateWeeklyHealthPercentage(
-      patientUid,
+      resolvedPatientUid,
     );
 
     if (!mounted) return;
 
+    // 🔑 4. State + providers syncen
     setState(() {
-      _patientUid = patientUid;
+      _patientUid = resolvedPatientUid;
     });
+
+    ref
+        .read(activePatientProvider.notifier)
+        .setActivePatient(resolvedPatientUid);
 
     ref
         .read(statsContextProvider.notifier)
         .setContext(
-          targetUid: patientUid,
+          targetUid: resolvedPatientUid,
           displayName: patient?['name'],
           weekPercentage: weekPercentage,
         );
+
+    // 🔑 5. Persist keuze (alleen nodig bij fallback)
+    if (storedActiveUid == null) {
+      await userService.setActivePatientForCaregiver(
+        caregiverUid: caregiverUid,
+        patientUid: resolvedPatientUid,
+      );
+    }
 
     _weekTileController.forward(from: 0);
   }
@@ -140,16 +169,13 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
             onClearAll: () async {
               final userService = UserService();
 
-              /// 1️⃣ UI eerst veilig leegmaken
               for (final ctrl in _tileControllers.values) {
                 ctrl.dispose();
               }
               _tileControllers.clear();
 
-              /// 2️⃣ Provider laten hertekenen
               ref.invalidate(receivedNotificationsProvider(caregiverUid));
 
-              /// 3️⃣ Daarna pas Firestore opschonen
               await userService.deleteAllReceivedNotifications(caregiverUid);
             },
           ),
@@ -212,44 +238,21 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
                       vertical: 10,
                       horizontal: 7,
                     ),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: const Color.fromARGB(
-                                255,
-                                133,
-                                26,
-                                17,
-                              ).withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 20),
-                            child: const Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Dismissible(
-                          key: ValueKey(item.id),
-                          direction: DismissDirection.endToStart,
-                          onDismissed: (_) async {
-                            final userService = UserService();
-                            await userService.deleteReceivedNotification(
-                              caregiverUid,
-                              item.id,
-                            );
-                            _tileControllers.remove(item.id)?.dispose();
-                          },
-                          child: NotificationTile(
-                            label: item.receivedLabel,
-                            receivedAt: item.createdAt,
-                          ),
-                        ),
-                      ],
+                    child: Dismissible(
+                      key: ValueKey(item.id),
+                      direction: DismissDirection.endToStart,
+                      onDismissed: (_) async {
+                        final userService = UserService();
+                        await userService.deleteReceivedNotification(
+                          caregiverUid,
+                          item.id,
+                        );
+                        _tileControllers.remove(item.id)?.dispose();
+                      },
+                      child: NotificationTile(
+                        label: item.receivedLabel,
+                        receivedAt: item.createdAt,
+                      ),
                     ),
                   ),
                 ),

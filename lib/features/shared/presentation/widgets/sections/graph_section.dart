@@ -24,6 +24,19 @@ class _GraphSectionState extends State<GraphSection> {
     _activeColor = const Color(0xFF00AEEF);
   }
 
+  // ✅ ENIGE TOEVOEGING – verder NIETS aangepast
+  @override
+  void didUpdateWidget(covariant GraphSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.userId != widget.userId) {
+      // reset alleen interne state zodat de nieuwe userId echt pakt
+      setState(() {
+        _activeColor = const Color(0xFF00AEEF);
+      });
+    }
+  }
+
   void _toggleGlow(Color color) {
     setState(() {
       _activeColor = _activeColor == color ? null : color;
@@ -78,7 +91,6 @@ class _GraphSectionState extends State<GraphSection> {
         print('connectionState = ${snapshot.connectionState}');
         print('docs length = ${snapshot.data?.docs.length}');
 
-        // 👇 per lijn alleen bestaande dagen opslaan
         final Map<int, double> eetlust = {};
         final Map<int, double> energie = {};
         final Map<int, double> stemming = {};

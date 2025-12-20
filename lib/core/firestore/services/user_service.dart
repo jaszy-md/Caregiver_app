@@ -69,6 +69,33 @@ class UserService {
   }
 
   /// =========================
+  /// ACTIEVE PATIËNT (CAREGIVER)
+  /// =========================
+
+  Future<void> setActivePatientForCaregiver({
+    required String caregiverUid,
+    required String patientUid,
+  }) async {
+    print(
+      '[UserService] setActivePatientForCaregiver caregiver=$caregiverUid patient=$patientUid',
+    );
+
+    await _db.collection('users').doc(caregiverUid).update({
+      'activePatientUid': patientUid,
+      'activePatientUpdatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<String?> getActivePatientForCaregiver(String caregiverUid) async {
+    print('[UserService] getActivePatientForCaregiver caregiver=$caregiverUid');
+
+    final doc = await _db.collection('users').doc(caregiverUid).get();
+    final uid = doc.data()?['activePatientUid'];
+
+    return uid is String && uid.isNotEmpty ? uid : null;
+  }
+
+  /// =========================
   /// HEALTH STATS
   /// =========================
 
@@ -96,7 +123,6 @@ class UserService {
     print('[UserService] saveTodayHealthStats key = $key');
     print('[UserService] saveTodayHealthStats payload = $payload');
 
-    // Dagelijkse historie
     await _db
         .collection('users')
         .doc(uid)
@@ -104,7 +130,6 @@ class UserService {
         .doc(key)
         .set(payload, SetOptions(merge: true));
 
-    // User-root (laatste dag + datum)
     await _db.collection('users').doc(uid).update({
       'healthStats': {
         'eetlust': payload['eetlust'],
@@ -112,7 +137,7 @@ class UserService {
         'stemming': payload['stemming'],
         'slaapritme': payload['slaapritme'],
       },
-      'healthStatsDate': key, // ← NIEUW (dag waarop deze stats horen)
+      'healthStatsDate': key,
       'healthStatsUpdatedAt': FieldValue.serverTimestamp(),
     });
   }
@@ -124,12 +149,7 @@ class UserService {
     final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
     final end = start.add(const Duration(days: 7));
 
-    print('==============================');
-    print('[UserService] watchWeekHealthStats');
-    print('[UserService] uid = $uid');
-    print('[UserService] start = $start');
-    print('[UserService] end = $end');
-    print('==============================');
+    print('[UserService] watchWeekHealthStats uid = $uid');
 
     return _db
         .collection('users')
@@ -147,18 +167,12 @@ class UserService {
 
   Future<int> calculateWeeklyHealthPercentage(String uid) async {
     final now = DateTime.now();
-    final monday = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).subtract(Duration(days: now.weekday - DateTime.monday));
+    final monday = now.subtract(Duration(days: now.weekday - DateTime.monday));
 
     final start = DateTime(monday.year, monday.month, monday.day);
     final end = start.add(const Duration(days: 7));
 
     print('[UserService] calculateWeeklyHealthPercentage uid = $uid');
-    print('[UserService] week start = $start');
-    print('[UserService] week end = $end');
 
     final snapshot =
         await _db
@@ -175,28 +189,18 @@ class UserService {
     for (final doc in snapshot.docs) {
       final data = doc.data();
 
-      final energie = (data['energie'] ?? 0) as int;
-      final eetlust = (data['eetlust'] ?? 0) as int;
-      final stemming = (data['stemming'] ?? 0) as int;
-      final slaapritme = (data['slaapritme'] ?? 0) as int;
+      final energie = (data['energie'] as num?)?.toInt() ?? 0;
+      final eetlust = (data['eetlust'] as num?)?.toInt() ?? 0;
+      final stemming = (data['stemming'] as num?)?.toInt() ?? 0;
+      final slaapritme = (data['slaapritme'] as num?)?.toInt() ?? 0;
 
       totalScore += energie + eetlust + stemming + slaapritme;
       totalPossible += 40;
-
-      print(
-        '[UserService] day score = ${energie + eetlust + stemming + slaapritme}/40',
-      );
     }
 
-    if (totalPossible == 0) {
-      print('[UserService] no data this week → 0%');
-      return 0;
-    }
+    if (totalPossible == 0) return 0;
 
-    final percentage = ((totalScore / totalPossible) * 100).round();
-    print('[UserService] weekly percentage = $percentage%');
-
-    return percentage.clamp(0, 100);
+    return ((totalScore / totalPossible) * 100).round().clamp(0, 100);
   }
 
   /// =========================
@@ -207,10 +211,6 @@ class UserService {
     String caregiverUid,
     String notificationId,
   ) async {
-    print(
-      '[UserService] deleteReceivedNotification caregiverUid = $caregiverUid notificationId = $notificationId',
-    );
-
     await _db
         .collection('users')
         .doc(caregiverUid)
@@ -220,10 +220,6 @@ class UserService {
   }
 
   Future<void> deleteAllReceivedNotifications(String caregiverUid) async {
-    print(
-      '[UserService] deleteAllReceivedNotifications caregiverUid = $caregiverUid',
-    );
-
     final snapshot =
         await _db
             .collection('users')

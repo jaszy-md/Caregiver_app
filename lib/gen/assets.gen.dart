@@ -53,6 +53,10 @@ class $AssetsImagesGen {
   AssetGenImage get caregiverConnect =>
       const AssetGenImage('assets/images/caregiver-connect.png');
 
+  /// File path: assets/images/caregiver-id-2.png
+  AssetGenImage get caregiverId2 =>
+      const AssetGenImage('assets/images/caregiver-id-2.png');
+
   /// File path: assets/images/caregiver-id.png
   AssetGenImage get caregiverId =>
       const AssetGenImage('assets/images/caregiver-id.png');
@@ -241,6 +245,7 @@ class $AssetsImagesGen {
     callBlock,
     callCaregiver,
     caregiverConnect,
+    caregiverId2,
     caregiverId,
     connectIcon2,
     connectIcon,

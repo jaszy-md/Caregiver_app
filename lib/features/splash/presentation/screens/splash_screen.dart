@@ -1,3 +1,4 @@
+import 'package:care_link/app/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:go_router/go_router.dart';
@@ -18,10 +19,12 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _startPreload());
   }
 
@@ -31,13 +34,22 @@ class _SplashScreenState extends State<SplashScreen>
     for (int i = 0; i < allImages.length; i++) {
       await precacheImage(allImages[i].provider(), context);
       if (!mounted) return;
-      setState(() => _progress = (i + 1) / allImages.length);
+
+      setState(() {
+        _progress = (i + 1) / allImages.length;
+      });
     }
 
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 150));
     await _fadeController.forward();
 
-    if (mounted) context.go('/login');
+    if (!mounted) return;
+
+    // 🔑 DIT IS DE ENIGE JUISTE ACTIE
+    AppRouter.markSplashCompleted();
+
+    // 🔁 Router opnieuw laten beslissen
+    context.go('/splash');
   }
 
   @override
@@ -98,6 +110,8 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ],
           ),
+
+          // Fade-out overlay
           FadeTransition(
             opacity: _fadeController,
             child: Container(color: Colors.white),
