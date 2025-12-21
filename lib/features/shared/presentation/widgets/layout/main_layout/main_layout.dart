@@ -21,6 +21,7 @@ class MainLayout extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: false,
       appBar: header,
       body: Column(
         mainAxisSize: MainAxisSize.max,

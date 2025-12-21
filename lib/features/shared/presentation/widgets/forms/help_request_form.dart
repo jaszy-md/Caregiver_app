@@ -1,3 +1,4 @@
+import 'package:care_link/features/shared/presentation/widgets/dialogs/contact_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -26,79 +27,102 @@ class _HelpRequestFormState extends State<HelpRequestForm> {
   }
 
   void _submit() {
-    final payload = {
-      'helpType': _helpType?.name,
-      'contactType': _contactType.name,
-      'phone': _contactType == ContactType.phone ? _phoneController.text : null,
-    };
-
-    debugPrint(payload.toString());
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Verzoek verstuurd')));
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => const ContactConfirmationDialog(),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 340,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFD9F1F2),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Waar heeft u hulp bij nodig?',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
+    final double screenWidth = MediaQuery.of(context).size.width;
 
-          _helpRadio('Ketting verbinden', HelpType.ketting),
-          _helpRadio('Mantelzorger verbinden', HelpType.mantelzorger),
-          _helpRadio('Rol aanpassen', HelpType.rol),
-          _helpRadio('Anders', HelpType.anders),
+    final double formWidth = screenWidth > 380 ? 340 : 310;
+    final double formHeight = screenWidth > 380 ? 400 : 350;
 
-          const SizedBox(height: 12),
+    final double formPadding = screenWidth > 380 ? 20 : 16;
+    final double titleFontSize = screenWidth > 380 ? 18 : 16;
+    final double sectionSpacing = screenWidth > 380 ? 12 : 10;
+    final double rowHeight = screenWidth > 380 ? 35 : 30;
+    final double buttonPadding = screenWidth > 380 ? 12 : 10;
 
-          const Text(
-            'Hoe kunnen we u bereiken?',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 6),
-
-          _emailRow(),
-          _phoneRow(),
-
-          const SizedBox(height: 10),
-
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _canSubmit ? _submit : null,
-              icon: const Icon(Icons.send),
-              label: const Text('Verstuur'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0A3F42),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+    return Center(
+      child: Container(
+        width: formWidth,
+        height: formHeight,
+        padding: EdgeInsets.all(formPadding),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9F1F2),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Hoe kunnen we u bereiken?',
+                style: TextStyle(
+                  fontSize: titleFontSize,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
+
+              SizedBox(height: sectionSpacing),
+
+              _emailRow(rowHeight),
+              _phoneRow(rowHeight),
+
+              SizedBox(height: sectionSpacing),
+
+              Text(
+                'Waar heeft u hulp bij nodig?',
+                style: TextStyle(
+                  fontSize: titleFontSize,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              SizedBox(height: sectionSpacing),
+
+              _helpRadio('Ketting verbinden', HelpType.ketting, rowHeight),
+              _helpRadio(
+                'Mantelzorger verbinden',
+                HelpType.mantelzorger,
+                rowHeight,
+              ),
+              _helpRadio('Rol aanpassen', HelpType.rol, rowHeight),
+              _helpRadio('Anders', HelpType.anders, rowHeight),
+
+              SizedBox(height: sectionSpacing),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _canSubmit ? _submit : null,
+                  icon: const Icon(Icons.send),
+                  label: const Text('Verstuur'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0A3F42),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: buttonPadding),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _helpRadio(String label, HelpType value) {
+  Widget _helpRadio(String label, HelpType value, double rowHeight) {
     return SizedBox(
-      height: 36,
+      height: rowHeight,
       child: RadioListTile<HelpType>(
         value: value,
         groupValue: _helpType,
@@ -112,9 +136,9 @@ class _HelpRequestFormState extends State<HelpRequestForm> {
     );
   }
 
-  Widget _emailRow() {
+  Widget _emailRow(double rowHeight) {
     return SizedBox(
-      height: 40,
+      height: rowHeight,
       child: Row(
         children: [
           Radio<ContactType>(
@@ -130,9 +154,9 @@ class _HelpRequestFormState extends State<HelpRequestForm> {
     );
   }
 
-  Widget _phoneRow() {
+  Widget _phoneRow(double rowHeight) {
     return SizedBox(
-      height: 40,
+      height: rowHeight,
       child: Row(
         children: [
           Radio<ContactType>(
