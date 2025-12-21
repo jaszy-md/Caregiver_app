@@ -27,7 +27,6 @@ class _GraphSectionState extends State<GraphSection> {
   @override
   void didUpdateWidget(covariant GraphSection oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (oldWidget.userId != widget.userId) {
       setState(() {
         _activeColor = const Color(0xFF00AEEF);
@@ -48,22 +47,16 @@ class _GraphSectionState extends State<GraphSection> {
   }
 
   int _dayIndexFromMonday(DateTime day) {
-    return day.weekday - DateTime.monday; // ma=0 .. zo=6
+    return day.weekday - DateTime.monday;
   }
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final scale = width / 450;
+    final double screenWidth = MediaQuery.of(context).size.width;
 
-    double chartHeight;
-    if (width < 400) {
-      chartHeight = 310;
-    } else if (width < 450) {
-      chartHeight = 360;
-    } else {
-      chartHeight = 420;
-    }
+    final double graphFontSize = screenWidth > 380 ? 17 : 15;
+    final double chartWidth = screenWidth > 380 ? 320 : 290;
+    final double chartHeight = screenWidth > 380 ? 300 : 270;
 
     final eetlustColor = const Color(0xFF00AEEF);
     final energieColor = const Color(0xFF00B050);
@@ -97,10 +90,8 @@ class _GraphSectionState extends State<GraphSection> {
           }
         }
 
-        // 🔑 AANGEPASTE LOGICA (ENIGE WIJZIGING)
         List<FlSpot> _spotsFromMap(Map<int, double> values) {
           if (values.isEmpty) return [];
-
           final todayIndex = _dayIndexFromMonday(DateTime.now());
           final firstFilledDay = values.keys.reduce(min);
 
@@ -111,12 +102,10 @@ class _GraphSectionState extends State<GraphSection> {
             if (values.containsKey(day)) {
               lastValue = values[day];
             }
-
             if (lastValue != null) {
               spots.add(FlSpot(day.toDouble(), lastValue));
             }
           }
-
           return spots;
         }
 
@@ -155,19 +144,18 @@ class _GraphSectionState extends State<GraphSection> {
           children: [
             SizedBox(
               height: chartHeight,
-              width: width * 0.88,
+              width: chartWidth,
               child: Stack(
-                clipBehavior: Clip.none,
                 children: [
                   Positioned(
-                    left: width * 0.1,
-                    right: width * 0.05,
-                    top: 4 * scale,
-                    bottom: 40 * scale,
+                    left: 36,
+                    right: 18,
+                    top: 0,
+                    bottom: 40,
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(14 * scale),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: const Color(0xFF0C3337),
                           width: 2.5,
@@ -180,9 +168,11 @@ class _GraphSectionState extends State<GraphSection> {
                           maxY: 10,
                           minX: 0,
                           maxX: 6,
+
+                          lineTouchData: LineTouchData(enabled: false),
+
                           gridData: FlGridData(
                             show: true,
-                            drawVerticalLine: true,
                             horizontalInterval: 1,
                             verticalInterval: 1,
                             getDrawingHorizontalLine:
@@ -199,11 +189,25 @@ class _GraphSectionState extends State<GraphSection> {
                           borderData: FlBorderData(show: false),
                           clipData: const FlClipData.all(),
                           titlesData: FlTitlesData(show: false),
+
                           lineBarsData: [
-                            _buildLine(eetlustColor, eetlust),
-                            _buildLine(energieColor, energie),
-                            _buildLine(stemmingColor, stemming),
-                            _buildLine(slaapritmeColor, slaapritme),
+                            if (_activeColor != eetlustColor)
+                              _buildLine(eetlustColor, eetlust),
+                            if (_activeColor != energieColor)
+                              _buildLine(energieColor, energie),
+                            if (_activeColor != stemmingColor)
+                              _buildLine(stemmingColor, stemming),
+                            if (_activeColor != slaapritmeColor)
+                              _buildLine(slaapritmeColor, slaapritme),
+
+                            if (_activeColor == eetlustColor)
+                              _buildLine(eetlustColor, eetlust),
+                            if (_activeColor == energieColor)
+                              _buildLine(energieColor, energie),
+                            if (_activeColor == stemmingColor)
+                              _buildLine(stemmingColor, stemming),
+                            if (_activeColor == slaapritmeColor)
+                              _buildLine(slaapritmeColor, slaapritme),
                           ],
                         ),
                       ),
@@ -211,9 +215,9 @@ class _GraphSectionState extends State<GraphSection> {
                   ),
 
                   Positioned(
-                    left: 0,
+                    left: 5,
                     top: 0,
-                    bottom: 33 * scale,
+                    bottom: 33,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -223,10 +227,10 @@ class _GraphSectionState extends State<GraphSection> {
                           padding: const EdgeInsets.only(right: 4),
                           child: Text(
                             (10 - i).toString(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Poppins',
-                              fontSize: 17,
-                              color: Color(0xFF0C3337),
+                              fontSize: graphFontSize,
+                              color: const Color(0xFF0C3337),
                             ),
                           ),
                         ),
@@ -235,27 +239,25 @@ class _GraphSectionState extends State<GraphSection> {
                   ),
 
                   Positioned(
-                    left: width * 0.1,
-                    right: width * 0.05,
-                    bottom: 5,
-                    child: const Row(
+                    left: 36,
+                    right: 18,
+                    bottom: 12,
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _DayLabel('Ma'),
-                        _DayLabel('Di'),
-                        _DayLabel('Wo'),
-                        _DayLabel('Do'),
-                        _DayLabel('Vr'),
-                        _DayLabel('Za'),
-                        _DayLabel('Zo'),
+                        _DayLabel('Ma', graphFontSize),
+                        _DayLabel('Di', graphFontSize),
+                        _DayLabel('Wo', graphFontSize),
+                        _DayLabel('Do', graphFontSize),
+                        _DayLabel('Vr', graphFontSize),
+                        _DayLabel('Za', graphFontSize),
+                        _DayLabel('Zo', graphFontSize),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 2),
 
             Container(
               margin: const EdgeInsets.only(left: 20),
@@ -279,7 +281,7 @@ class _GraphSectionState extends State<GraphSection> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 10 * scale),
+                  const SizedBox(height: 7),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -310,16 +312,18 @@ class _GraphSectionState extends State<GraphSection> {
 
 class _DayLabel extends StatelessWidget {
   final String text;
-  const _DayLabel(this.text);
+  final double fontSize;
+
+  const _DayLabel(this.text, this.fontSize);
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: 'Poppins',
-        fontSize: 16,
-        color: Color(0xFF0C3337),
+        fontSize: fontSize,
+        color: const Color(0xFF0C3337),
       ),
     );
   }

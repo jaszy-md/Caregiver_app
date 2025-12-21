@@ -12,7 +12,6 @@ class StatsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statsContext = ref.watch(statsContextProvider);
 
-    // ✅ alleen eerste naam pakken
     final String? firstName =
         statsContext?.displayName != null &&
                 statsContext!.displayName!.trim().isNotEmpty
@@ -29,7 +28,6 @@ class StatsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // HEADER
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -42,7 +40,7 @@ class StatsScreen extends ConsumerWidget {
               ],
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
 
             if (targetUid == null)
               const Padding(

@@ -24,8 +24,8 @@ class _LegendaTileState extends State<LegendaTile> {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final tileWidth = (width * 0.33).clamp(110.0, 150.0);
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double legendaTileWidth = screenWidth > 380 ? 122 : 108;
 
     return FocusableActionDetector(
       autofocus: widget.isActive,
@@ -48,7 +48,7 @@ class _LegendaTileState extends State<LegendaTile> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
-          width: tileWidth,
+          width: legendaTileWidth,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color:
