@@ -23,7 +23,7 @@ class HealthStatTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            constraints: const BoxConstraints(minWidth: 170, minHeight: 50),
+            constraints: const BoxConstraints(minWidth: 170, minHeight: 42),
             padding: const EdgeInsets.only(left: 20),
             decoration: const BoxDecoration(
               color: Color(0xFF008F9D),

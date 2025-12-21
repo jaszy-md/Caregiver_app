@@ -31,7 +31,7 @@ class ConnectStepTile extends StatelessWidget {
           child: Container(
             height: tileHeight,
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            constraints: const BoxConstraints(minWidth: 200),
+            constraints: const BoxConstraints(minWidth: 180),
             decoration: const BoxDecoration(
               color: Color(0xFF04454B),
               borderRadius: BorderRadius.only(

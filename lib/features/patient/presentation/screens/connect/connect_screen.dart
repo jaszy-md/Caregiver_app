@@ -11,9 +11,9 @@ class ConnectScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    double flyerW = size.width * 0.18;
-    flyerW = flyerW.clamp(80.0, 130.0);
-    final double flyerH = flyerW * 1.12;
+    final double screenWidth = size.width;
+    final double flyerW = screenWidth > 380 ? 85 : 60;
+    final double flyerH = screenWidth > 380 ? 100 : 90;
 
     return SafeArea(
       top: false,
@@ -71,7 +71,6 @@ class ConnectScreen extends StatelessWidget {
                       number: '2',
                       text: 'Klik hier op dit icoon',
                     ),
-
                     ConnectStepTile(
                       number: '3',
                       text: 'Scan de QR-code hier',
@@ -85,7 +84,6 @@ class ConnectScreen extends StatelessWidget {
                         );
                       },
                     ),
-
                     const ConnectStepTile(
                       number: '4',
                       text: 'De ketting is verbonden!',
@@ -94,8 +92,8 @@ class ConnectScreen extends StatelessWidget {
                 ),
 
                 Positioned(
-                  top: size.height * 0.146,
-                  right: 20,
+                  top: size.height * 0.140,
+                  right: 15,
                   child: Assets.images.flyer.image(
                     width: flyerW,
                     height: flyerH,

@@ -217,7 +217,7 @@ class _GraphSectionState extends State<GraphSection> {
                   Positioned(
                     left: 5,
                     top: 0,
-                    bottom: 33,
+                    bottom: 36,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,

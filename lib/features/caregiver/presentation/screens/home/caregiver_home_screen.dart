@@ -16,11 +16,7 @@ class CaregiverHomeScreen extends ConsumerStatefulWidget {
       _CaregiverHomeScreenState();
 }
 
-class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
-    with TickerProviderStateMixin {
-  late final AnimationController _weekTileController;
-  late final Animation<Offset> _weekTileAnimation;
-
+class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen> {
   String? _patientUid;
 
   static const double notificationsMaxWidth = 412.0;
@@ -28,19 +24,6 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
   @override
   void initState() {
     super.initState();
-
-    _weekTileController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-
-    _weekTileAnimation = Tween<Offset>(
-      begin: const Offset(1.2, 0),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _weekTileController, curve: Curves.easeOutCubic),
-    );
-
     _initPatientContext();
   }
 
@@ -89,14 +72,6 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
         patientUid: resolvedPatientUid,
       );
     }
-
-    _weekTileController.forward(from: 0);
-  }
-
-  @override
-  void dispose() {
-    _weekTileController.dispose();
-    super.dispose();
   }
 
   @override
@@ -114,7 +89,18 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 5),
-          const LineDotTitle(title: 'Welkom!'),
+
+          // 🔒 Titel volledig losgekoppeld van route-animaties
+          const RepaintBoundary(
+            child: SizedBox(
+              width: double.infinity,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: LineDotTitle(title: 'Welkom!'),
+              ),
+            ),
+          ),
+
           const SizedBox(height: 10),
 
           Row(
@@ -134,13 +120,7 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
                   ),
                 ),
               ),
-              SlideTransition(
-                position: _weekTileAnimation,
-                child:
-                    _patientUid == null
-                        ? const SizedBox(width: 140, height: 130)
-                        : const WeekStateTile(),
-              ),
+              const WeekStateTile(),
             ],
           ),
 

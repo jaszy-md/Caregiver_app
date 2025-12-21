@@ -44,16 +44,12 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
     });
   }
 
-  /// ✅ NOOIT resetten
-  /// ✅ Altijd laatst bekende stats gebruiken
-  /// ✅ Bij eerste keer: defaults opslaan
   Future<void> _loadStats() async {
     final user = await _userService.getUser(_uid);
     if (!mounted || user == null) return;
 
     final stats = user['healthStats'] as Map<String, dynamic>?;
 
-    // 🔑 Eerste keer ooit → defaults opslaan
     if (stats == null) {
       final defaultStats = {
         'Energie': 5,
@@ -73,7 +69,6 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
       return;
     }
 
-    // ✅ Altijd laatst bekende waarden gebruiken
     setState(() {
       _mystats = {
         'Energie': stats['energie'] ?? 5,
@@ -108,8 +103,12 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final double screenWidth = size.width;
+
     final double arrowW = size.width * 0.14;
     final double graphW = size.width * 0.11;
+
+    final double infoFontSize = screenWidth > 380 ? 16.5 : 14;
 
     return SafeArea(
       top: false,
@@ -128,13 +127,13 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: SizedBox(
-                    width: size.width * 0.70,
-                    child: const Text(
+                    width: size.width * 0.58,
+                    child: Text(
                       'Rank jouw status en bekijk hier jouw state van de week! '
                       'Mantelzorgers kunnen dit ook bekijken',
                       style: TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 15,
+                        fontSize: infoFontSize,
                         color: Colors.black87,
                         height: 1.4,
                       ),
@@ -142,7 +141,7 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
 
                 Padding(
                   padding: const EdgeInsets.only(right: 20),
@@ -161,7 +160,7 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
                 ),
 
                 Padding(
-                  padding: const EdgeInsets.only(right: 20, top: 2, bottom: 20),
+                  padding: const EdgeInsets.only(right: 20, top: 7, bottom: 20),
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: GestureDetector(
@@ -204,7 +203,7 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
                     Padding(
                       padding: EdgeInsets.only(
                         right: size.width * 0.04,
-                        top: size.height * 0.01,
+                        top: size.height * 0.02,
                       ),
                       child: Assets.images.arrowHealthCheck.image(
                         width: arrowW,

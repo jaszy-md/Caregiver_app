@@ -42,21 +42,6 @@ class StatsScreen extends ConsumerWidget {
 
             const SizedBox(height: 10),
 
-            if (targetUid == null)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  'Selecteer een patiënt of vul eerst gegevens in om statistieken te zien.',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14,
-                    color: Color(0xFF005159),
-                  ),
-                ),
-              ),
-
-            const SizedBox(height: 10),
-
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),

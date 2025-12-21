@@ -169,7 +169,7 @@ class _PatientNotificationsSectionState
     final double iconSize = tileWidth * 0.6;
 
     final double ipadImageScale =
-        width < 380 ? 1.14 : (width < 430 ? 1.08 : 1.03);
+        width < 380 ? 1.14 : (width < 430 ? 1.05 : 1.03);
 
     return RepaintBoundary(
       child: Center(
@@ -185,7 +185,7 @@ class _PatientNotificationsSectionState
               ),
             ),
             Positioned(
-              top: verticalPadding - 32,
+              top: verticalPadding - 36,
               left: 0,
               right: 0,
               child: const Text(

@@ -110,6 +110,12 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen>
     super.build(context);
 
     final asyncBlocks = ref.watch(notificationBlocksProvider);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // 🔹 Responsive cloud & text sizing
+    final double cloudWidth = screenWidth > 420 ? 240 : 280;
+    final double cloudHeight = screenWidth > 420 ? 86 : 100;
+    final double cloudFontSize = screenWidth > 420 ? 18 : 22;
 
     return asyncBlocks.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -132,7 +138,11 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen>
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    Assets.images.noteCloud.image(width: 280),
+                    Assets.images.noteCloud.image(
+                      width: cloudWidth,
+                      height: cloudHeight,
+                      fit: BoxFit.contain,
+                    ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Text(
@@ -140,7 +150,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen>
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Poppins',
-                          fontSize: 22,
+                          fontSize: cloudFontSize,
                           fontWeight: FontWeight.w600,
                           color:
                               _lastWasSent
