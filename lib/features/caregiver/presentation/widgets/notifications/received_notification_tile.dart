@@ -31,10 +31,9 @@ class ReceivedNotificationTile extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // 🟦 Hoofd tile
         Container(
           width: double.infinity,
-          height: 64,
+          height: 52,
           decoration: BoxDecoration(
             color: const Color(0xFF96DFE6),
             borderRadius: BorderRadius.circular(15),
@@ -55,15 +54,14 @@ class ReceivedNotificationTile extends StatelessWidget {
                 color: Color.fromARGB(255, 7, 54, 55),
               ),
               children: [
-                if (hasName) ...[
+                if (hasName)
                   TextSpan(
                     text: '${patientName!.trim()}: ',
                     style: const TextStyle(
-                      fontSize: 18, // ✅ naam iets groter
-                      fontWeight: FontWeight.w700, // ✅ bolder
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ],
                 TextSpan(
                   text: label,
                   style: const TextStyle(
@@ -75,8 +73,6 @@ class ReceivedNotificationTile extends StatelessWidget {
             ),
           ),
         ),
-
-        // ⏱️ Tijd badge rechtsboven
         Positioned(
           top: 0,
           right: 0,
@@ -100,8 +96,6 @@ class ReceivedNotificationTile extends StatelessWidget {
             ),
           ),
         ),
-
-        // 🔔 Icoon linksboven
         Positioned(
           top: -20,
           left: -20,

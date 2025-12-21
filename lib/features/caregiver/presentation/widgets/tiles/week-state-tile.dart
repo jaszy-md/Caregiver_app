@@ -88,7 +88,6 @@ class _WeekStateTileState extends ConsumerState<WeekStateTile>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // 🎨 Achtergrond
                   Assets.images.statusWidget.image(
                     fit: BoxFit.fill,
                     width: 145,

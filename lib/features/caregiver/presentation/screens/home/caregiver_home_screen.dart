@@ -23,6 +23,8 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
 
   String? _patientUid;
 
+  static const double notificationsMaxWidth = 412.0;
+
   @override
   void initState() {
     super.initState();
@@ -104,26 +106,29 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
       return const Center(child: Text('Niet ingelogd'));
     }
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double welcomeFontSize = screenWidth > 380 ? 20 : 19;
+
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 5),
           const LineDotTitle(title: 'Welkom!'),
-          const SizedBox(height: 15),
+          const SizedBox(height: 10),
 
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 40, 0),
-                  child: const Text(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                  child: Text(
                     'Blijf verbonden met uw naaste en ontvang hier alle meldingen in één overzicht.',
                     style: TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 20,
-                      color: Color(0xFF005159),
+                      fontSize: welcomeFontSize,
+                      color: const Color(0xFF005159),
                       height: 1.4,
                     ),
                   ),
@@ -141,7 +146,16 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
 
           const SizedBox(height: 10),
 
-          const Expanded(child: ReceivedNotificationsSection()),
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: notificationsMaxWidth,
+                ),
+                child: const ReceivedNotificationsSection(),
+              ),
+            ),
+          ),
         ],
       ),
     );
