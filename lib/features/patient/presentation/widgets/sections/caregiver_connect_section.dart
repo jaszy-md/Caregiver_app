@@ -17,6 +17,7 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
   final _service = CaregiverConnectService();
 
   String? _errorText;
+  bool _linkedSuccessfully = false;
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +38,12 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 37),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(height: size.height * 0.020),
+                  SizedBox(height: size.height * 0.010),
 
-                  // INPUT
                   Container(
                     height: 57,
                     decoration: BoxDecoration(
@@ -57,20 +57,31 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                     alignment: Alignment.center,
                     child: TextField(
                       controller: _codeController,
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.start,
+                      textAlignVertical: TextAlignVertical.center,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 17,
                         fontFamily: 'Poppins',
                       ),
                       onChanged: (_) {
-                        if (_errorText != null) {
-                          setState(() => _errorText = null);
+                        if (_errorText != null || _linkedSuccessfully) {
+                          setState(() {
+                            _errorText = null;
+                            _linkedSuccessfully = false;
+                          });
                         }
                       },
                       decoration: InputDecoration(
                         border: InputBorder.none,
+                        contentPadding: const EdgeInsets.fromLTRB(
+                          28,
+                          14,
+                          20,
+                          14,
+                        ),
                         hintText: _errorText ?? 'Voer mantelzorger-ID in',
+                        hintMaxLines: 2,
                         hintStyle: TextStyle(
                           color:
                               _errorText != null
@@ -79,14 +90,28 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                           fontSize: 14,
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.w600,
+                          height: 1.2,
                         ),
                       ),
                     ),
                   ),
 
+                  if (_linkedSuccessfully)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 6),
+                      child: Text(
+                        'Mantelzorger gekoppeld',
+                        style: TextStyle(
+                          color: Color(0xFF6EDC8C),
+                          fontFamily: 'Poppins',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
                   const SizedBox(height: 25),
 
-                  // BUTTON
                   GestureDetector(
                     onTap: () async {
                       final patient = FirebaseAuth.instance.currentUser;
@@ -100,16 +125,16 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                       if (error != null) {
                         setState(() {
                           _errorText = error;
+                          _linkedSuccessfully = false;
                           _codeController.clear();
                         });
                         return;
                       }
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Mantelzorger gekoppeld!'),
-                        ),
-                      );
+                      setState(() {
+                        _linkedSuccessfully = true;
+                      });
+
                       _codeController.clear();
                     },
                     child: Container(
@@ -136,11 +161,10 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
-                  // CONNECTED USERS LIST (ongewijzigd)
                   Container(
-                    height: size.height * 0.18,
+                    height: size.height * 0.17,
                     decoration: BoxDecoration(
                       color: const Color(0xFF00282C),
                       border: Border.all(color: Colors.white, width: 0.8),
@@ -165,6 +189,7 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                           return const Center(
                             child: Text(
                               'Nog geen mantelzorgers gekoppeld',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontFamily: 'Poppins',
@@ -179,8 +204,8 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                           itemCount: caregivers.length,
                           itemBuilder: (context, i) {
                             final c = caregivers[i];
-                            final fullName = c['name'] ?? '';
-                            final firstName = fullName.split(' ').first;
+                            final firstName =
+                                (c['name'] ?? '').split(' ').first;
                             final displayName =
                                 firstName.length > 7
                                     ? firstName.substring(0, 7)
