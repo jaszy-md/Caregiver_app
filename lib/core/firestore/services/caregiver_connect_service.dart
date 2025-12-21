@@ -9,7 +9,7 @@ class CaregiverConnectService {
     code = code.trim().toUpperCase();
 
     if (code.isEmpty) {
-      return "Vul een mantelzorger-ID in.";
+      return 'Vul mantelzorger-ID in';
     }
 
     final query =
@@ -20,13 +20,19 @@ class CaregiverConnectService {
             .get();
 
     if (query.docs.isEmpty) {
-      return "Geen mantelzorger gevonden met deze code.";
+      return 'Ongeldig mantelzorger ID';
     }
 
-    final caregiverUid = query.docs.first.id;
+    final caregiverDoc = query.docs.first;
+    final caregiverUid = caregiverDoc.id;
+    final data = caregiverDoc.data();
 
     if (caregiverUid == patientUid) {
-      return "Je kunt jezelf niet koppelen.";
+      return 'Dit is geen mantelzorger';
+    }
+
+    if (data['role'] != 'caregiver') {
+      return 'Dit is geen mantelzorger';
     }
 
     await _linkService.linkUsers(

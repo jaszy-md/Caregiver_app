@@ -16,6 +16,8 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
   final TextEditingController _codeController = TextEditingController();
   final _service = CaregiverConnectService();
 
+  String? _errorText;
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -40,6 +42,8 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(height: size.height * 0.020),
+
+                  // INPUT
                   Container(
                     height: 57,
                     decoration: BoxDecoration(
@@ -59,14 +63,22 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                         fontSize: 17,
                         fontFamily: 'Poppins',
                       ),
-                      decoration: const InputDecoration(
+                      onChanged: (_) {
+                        if (_errorText != null) {
+                          setState(() => _errorText = null);
+                        }
+                      },
+                      decoration: InputDecoration(
                         border: InputBorder.none,
-                        hintText: 'Voer mantelzorger-ID in',
+                        hintText: _errorText ?? 'Voer mantelzorger-ID in',
                         hintStyle: TextStyle(
-                          color: Colors.white70,
+                          color:
+                              _errorText != null
+                                  ? const Color.fromARGB(184, 160, 55, 55)
+                                  : Colors.white70,
                           fontSize: 14,
                           fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w300,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -77,29 +89,28 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                   // BUTTON
                   GestureDetector(
                     onTap: () async {
-                      final code = _codeController.text.trim();
-                      if (code.isEmpty) return;
-
                       final patient = FirebaseAuth.instance.currentUser;
                       if (patient == null) return;
 
                       final error = await _service.connectCaregiverByCode(
                         patient.uid,
-                        code,
+                        _codeController.text,
                       );
 
                       if (error != null) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(error)));
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Mantelzorger gekoppeld!"),
-                          ),
-                        );
-                        _codeController.clear();
+                        setState(() {
+                          _errorText = error;
+                          _codeController.clear();
+                        });
+                        return;
                       }
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Mantelzorger gekoppeld!'),
+                        ),
+                      );
+                      _codeController.clear();
                     },
                     child: Container(
                       width: 120,
@@ -127,7 +138,7 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
 
                   const SizedBox(height: 20),
 
-                  // CONNECTED USERS LIST
+                  // CONNECTED USERS LIST (ongewijzigd)
                   Container(
                     height: size.height * 0.18,
                     decoration: BoxDecoration(
@@ -153,7 +164,7 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                         if (caregivers.isEmpty) {
                           return const Center(
                             child: Text(
-                              "Nog geen mantelzorgers gekoppeld",
+                              'Nog geen mantelzorgers gekoppeld',
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontFamily: 'Poppins',
@@ -168,7 +179,12 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                           itemCount: caregivers.length,
                           itemBuilder: (context, i) {
                             final c = caregivers[i];
-                            final name = c['name'] ?? 'Onbekend';
+                            final fullName = c['name'] ?? '';
+                            final firstName = fullName.split(' ').first;
+                            final displayName =
+                                firstName.length > 7
+                                    ? firstName.substring(0, 7)
+                                    : firstName;
 
                             return Padding(
                               padding: const EdgeInsets.symmetric(
@@ -179,7 +195,7 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      name,
+                                      displayName,
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 14,
@@ -193,7 +209,7 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                                         context: context,
                                         builder:
                                             (_) => ConfirmRemoveCaregiverDialog(
-                                              name: name,
+                                              name: displayName,
                                               onConfirm: () async {
                                                 await _service
                                                     .disconnectCaregiver(

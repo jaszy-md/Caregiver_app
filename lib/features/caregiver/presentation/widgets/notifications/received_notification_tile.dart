@@ -28,6 +28,12 @@ class ReceivedNotificationTile extends StatelessWidget {
     final timeAgo = _formatAgo();
     final hasName = patientName != null && patientName!.trim().isNotEmpty;
 
+    final double screenWidth = MediaQuery.of(context).size.width;
+
+    final double nameFontSize = screenWidth > 380 ? 16 : 18;
+    final double labelFontSize = screenWidth > 380 ? 17 : 16;
+    final double timeFontSize = screenWidth > 380 ? 10 : 10;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -57,15 +63,15 @@ class ReceivedNotificationTile extends StatelessWidget {
                 if (hasName)
                   TextSpan(
                     text: '${patientName!.trim()}: ',
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: TextStyle(
+                      fontSize: nameFontSize,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 TextSpan(
                   text: label,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: labelFontSize,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -87,9 +93,9 @@ class ReceivedNotificationTile extends StatelessWidget {
             ),
             child: Text(
               timeAgo,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
-                fontSize: 12,
+                fontSize: timeFontSize,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w600,
               ),

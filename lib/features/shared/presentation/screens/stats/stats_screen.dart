@@ -40,7 +40,7 @@ class StatsScreen extends ConsumerWidget {
               ],
             ),
 
-            const SizedBox(height: 5),
+            const SizedBox(height: 10),
 
             if (targetUid == null)
               const Padding(
