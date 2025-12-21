@@ -51,6 +51,7 @@ class ConnectStepTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
+
                 Flexible(
                   child: Text(
                     text,
@@ -63,18 +64,28 @@ class ConnectStepTile extends StatelessWidget {
                     softWrap: false,
                   ),
                 ),
+
                 if (icon != null) ...[
                   const SizedBox(width: 8),
                   Row(
                     children: [
-                      Icon(icon, color: Colors.white, size: 23),
+                      Icon(
+                        icon,
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                        size: 28,
+                      ),
+
                       if (showArrow) ...[
-                        const SizedBox(width: 4),
-                        const AnimatedArrow(
-                          width: 30,
-                          height: 40,
-                          offsetDistance: 0.15,
-                          duration: Duration(milliseconds: 900),
+                        const SizedBox(width: 6),
+
+                        Transform.scale(
+                          scale: 1.4,
+                          child: const AnimatedArrow(
+                            width: 30,
+                            height: 40,
+                            offsetDistance: 0.15,
+                            duration: Duration(milliseconds: 900),
+                          ),
                         ),
                       ],
                     ],

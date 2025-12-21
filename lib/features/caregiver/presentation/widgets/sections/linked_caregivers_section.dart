@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:care_link/core/firestore/services/caregiver_connect_service.dart';
 import 'package:care_link/core/firestore/services/user_service.dart';
 import 'package:care_link/features/patient/presentation/widgets/dialogs/confirm_remove_caregiver_dialog.dart';
@@ -38,9 +39,7 @@ class _LinkedCaregiversSectionState
       children: [
         GestureDetector(
           onTap: () {
-            setState(() {
-              expanded = !expanded;
-            });
+            setState(() => expanded = !expanded);
             widget.onExpandedChanged?.call(expanded);
           },
           child: Container(
@@ -113,7 +112,7 @@ class _LinkedCaregiversSectionState
                     );
                   }
 
-                  // ✅ AUTO-SELECT (EN OPSLAAN)
+                  // ✅ AUTO SELECT (ZONDER NAVIGATIE)
                   if (!_autoSelected && activeUid == null) {
                     final first = caregivers.first;
                     _autoSelected = true;
@@ -141,93 +140,134 @@ class _LinkedCaregiversSectionState
                     });
                   }
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: caregivers.length,
-                    itemBuilder: (context, index) {
-                      final c = caregivers[index];
-                      final uid = c['uid'];
-                      final fullName = c['name'] ?? 'Onbekend';
-                      final firstName = fullName.trim().split(' ').first;
-                      final isActive = uid == activeUid;
-
-                      return InkWell(
-                        onTap: () async {
-                          ref
-                              .read(activePatientProvider.notifier)
-                              .setActivePatient(uid);
-
-                          ref
-                              .read(statsContextProvider.notifier)
-                              .setContext(
-                                targetUid: uid,
-                                displayName: firstName,
-                              );
-
-                          await userService.setActivePatientForCaregiver(
-                            caregiverUid: user.uid,
-                            patientUid: uid,
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 6,
-                            horizontal: 12,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                isActive
-                                    ? Icons.radio_button_checked
-                                    : Icons.radio_button_unchecked,
-                                size: 22,
-                                color:
-                                    isActive
-                                        ? const Color(0xFF3A8188)
-                                        : Colors.black45,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  firstName,
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 17,
-                                    color: const Color(0xFF00282C),
-                                    fontWeight:
-                                        isActive
-                                            ? FontWeight.w600
-                                            : FontWeight.w400,
-                                  ),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+                        child: Row(
+                          children: const [
+                            Expanded(
+                              child: Text(
+                                'Selecteer een persoon om de grafiekgegevens te bekijken',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                  color: Color(0xFF3A8188),
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder:
-                                        (_) => ConfirmRemoveCaregiverDialog(
-                                          name: firstName,
-                                          onConfirm: () async {
-                                            await service.disconnectCaregiver(
-                                              patientUid: user.uid,
-                                              caregiverUid: uid,
-                                            );
-                                          },
-                                        ),
-                                  );
-                                },
-                                child: const Icon(
-                                  Icons.close,
-                                  size: 28,
-                                  color: Color(0xFF8A1F1F),
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                            Icon(
+                              Icons.bar_chart_rounded,
+                              size: 22,
+                              color: Color(0xFF3A8188),
+                            ),
+                          ],
                         ),
-                      );
-                    },
+                      ),
+
+                      const Divider(height: 1),
+
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: caregivers.length,
+                          itemBuilder: (context, index) {
+                            final c = caregivers[index];
+                            final uid = c['uid'];
+                            final fullName = c['name'] ?? 'Onbekend';
+                            final firstName = fullName.trim().split(' ').first;
+                            final isActive = uid == activeUid;
+
+                            return InkWell(
+                              onTap: () async {
+                                ref
+                                    .read(activePatientProvider.notifier)
+                                    .setActivePatient(uid);
+
+                                ref
+                                    .read(statsContextProvider.notifier)
+                                    .setContext(
+                                      targetUid: uid,
+                                      displayName: firstName,
+                                    );
+
+                                await userService.setActivePatientForCaregiver(
+                                  caregiverUid: user.uid,
+                                  patientUid: uid,
+                                );
+
+                                if (!mounted) return;
+
+                                // 🚀 DIRECT NAAR STATS
+                                context.go('/stats');
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                  horizontal: 12,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      isActive
+                                          ? Icons.radio_button_checked
+                                          : Icons.radio_button_unchecked,
+                                      size: 22,
+                                      color:
+                                          isActive
+                                              ? const Color(0xFF3A8188)
+                                              : Colors.black45,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        firstName,
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 17,
+                                          color: const Color(0xFF00282C),
+                                          fontWeight:
+                                              isActive
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        showDialog(
+                                          context: context,
+                                          builder:
+                                              (_) =>
+                                                  ConfirmRemoveCaregiverDialog(
+                                                    name: firstName,
+                                                    onConfirm: () async {
+                                                      await service
+                                                          .disconnectCaregiver(
+                                                            patientUid:
+                                                                user.uid,
+                                                            caregiverUid: uid,
+                                                          );
+                                                    },
+                                                  ),
+                                        );
+                                      },
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 28,
+                                        color: Color(0xFF8A1F1F),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),

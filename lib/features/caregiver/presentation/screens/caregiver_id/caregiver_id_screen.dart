@@ -54,19 +54,33 @@ class _CaregiverIdScreenState extends ConsumerState<CaregiverIdScreen> {
     );
   }
 
+  String _formatFirstName(String? fullName) {
+    if (fullName == null || fullName.trim().isEmpty) {
+      return '';
+    }
+
+    final firstName = fullName.trim().split(' ').first;
+    return firstName.length > 7 ? firstName.substring(0, 7) : firstName;
+  }
+
   @override
   Widget build(BuildContext context) {
     final userDocAsync = ref.watch(userDocProvider);
 
     final screenWidth = MediaQuery.of(context).size.width;
-    final double imageWidth = screenWidth * 0.75;
+
+    const designWidth = 412.0;
+    final effectiveWidth =
+        screenWidth > designWidth ? designWidth : screenWidth;
+
+    final double imageWidth = effectiveWidth * 0.75;
     final double imageHeight = imageWidth * 1.3;
 
     return userDocAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
       data: (data) {
-        final name = data?['name'] ?? '';
+        final name = _formatFirstName(data?['name']);
         final userID = data?['userID'] ?? '------';
 
         return SingleChildScrollView(
@@ -90,58 +104,63 @@ class _CaregiverIdScreenState extends ConsumerState<CaregiverIdScreen> {
                       Positioned(
                         right: imageWidth * 0.22,
                         bottom: imageHeight * 0.13,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.only(left: imageWidth * 0.09),
-                              child: Text(
-                                name,
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w300,
-                                  fontSize: 20,
-                                  color: Colors.white,
+                        child: Transform.translate(
+                          offset: const Offset(0, -10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  left: imageWidth * 0.09,
+                                ),
+                                child: Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w300,
+                                    fontSize: 20,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Padding(
-                              padding: EdgeInsets.only(left: imageWidth * 0.09),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    userID,
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 20,
-                                      color: Colors.white,
+                              const SizedBox(height: 2),
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  left: imageWidth * 0.09,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      userID,
+                                      style: const TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  GestureDetector(
-                                    onTap: () => handleCopy(userID),
-                                    child: Icon(
-                                      copied ? Icons.check : Icons.copy,
-                                      color: Colors.white,
-                                      size: 18,
+                                    const SizedBox(width: 6),
+                                    GestureDetector(
+                                      onTap: () => handleCopy(userID),
+                                      child: Icon(
+                                        copied ? Icons.check : Icons.copy,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-
               const SizedBox(height: 5),
-
               LinkedCaregiversSection(
                 onExpandedChanged: (isExpanded) {
                   if (isExpanded) {
@@ -149,7 +168,6 @@ class _CaregiverIdScreenState extends ConsumerState<CaregiverIdScreen> {
                   }
                 },
               ),
-
               const SizedBox(height: 30),
             ],
           ),

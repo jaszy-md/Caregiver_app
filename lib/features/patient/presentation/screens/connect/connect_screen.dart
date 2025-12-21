@@ -72,7 +72,6 @@ class ConnectScreen extends StatelessWidget {
                       text: 'Klik hier op dit icoon',
                     ),
 
-                    // enkel dit is aangepast
                     ConnectStepTile(
                       number: '3',
                       text: 'Scan de QR-code hier',

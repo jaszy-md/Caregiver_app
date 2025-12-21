@@ -20,10 +20,10 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
   final String _uid = FirebaseAuth.instance.currentUser!.uid;
 
   Map<String, int> _mystats = {
-    'Energie': 0,
-    'Eetlust': 0,
-    'Stemming': 0,
-    'Slaapritme': 0,
+    'Energie': 5,
+    'Eetlust': 5,
+    'Stemming': 5,
+    'Slaapritme': 5,
   };
 
   @override
@@ -44,34 +44,42 @@ class _HealthCheckScreenState extends ConsumerState<HealthCheckScreen> {
     });
   }
 
+  /// ✅ NOOIT resetten
+  /// ✅ Altijd laatst bekende stats gebruiken
+  /// ✅ Bij eerste keer: defaults opslaan
   Future<void> _loadStats() async {
     final user = await _userService.getUser(_uid);
     if (!mounted || user == null) return;
 
     final stats = user['healthStats'] as Map<String, dynamic>?;
-    final statsDate = user['healthStatsDate'] as String?;
 
-    final todayKey = DateTime.now();
-    final today =
-        '${todayKey.year.toString().padLeft(4, '0')}-'
-        '${todayKey.month.toString().padLeft(2, '0')}-'
-        '${todayKey.day.toString().padLeft(2, '0')}';
+    // 🔑 Eerste keer ooit → defaults opslaan
+    if (stats == null) {
+      final defaultStats = {
+        'Energie': 5,
+        'Eetlust': 5,
+        'Stemming': 5,
+        'Slaapritme': 5,
+      };
 
-    // 🔑 ALS NIET VAN VANDAAG → RESET
-    if (stats == null || statsDate != today) {
+      await _userService.saveTodayHealthStats(_uid, defaultStats);
+
+      if (!mounted) return;
+
       setState(() {
-        _mystats = {'Energie': 0, 'Eetlust': 0, 'Stemming': 0, 'Slaapritme': 0};
+        _mystats = defaultStats;
       });
+
       return;
     }
 
-    // ✅ VANDAAG → LADEN
+    // ✅ Altijd laatst bekende waarden gebruiken
     setState(() {
       _mystats = {
-        'Energie': stats['energie'] ?? 0,
-        'Eetlust': stats['eetlust'] ?? 0,
-        'Stemming': stats['stemming'] ?? 0,
-        'Slaapritme': stats['slaapritme'] ?? 0,
+        'Energie': stats['energie'] ?? 5,
+        'Eetlust': stats['eetlust'] ?? 5,
+        'Stemming': stats['stemming'] ?? 5,
+        'Slaapritme': stats['slaapritme'] ?? 5,
       };
     });
   }

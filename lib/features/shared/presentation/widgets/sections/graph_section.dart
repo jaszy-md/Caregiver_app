@@ -24,13 +24,11 @@ class _GraphSectionState extends State<GraphSection> {
     _activeColor = const Color(0xFF00AEEF);
   }
 
-  // ✅ ENIGE TOEVOEGING – verder NIETS aangepast
   @override
   void didUpdateWidget(covariant GraphSection oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.userId != widget.userId) {
-      // reset alleen interne state zodat de nieuwe userId echt pakt
       setState(() {
         _activeColor = const Color(0xFF00AEEF);
       });
@@ -72,25 +70,11 @@ class _GraphSectionState extends State<GraphSection> {
     final stemmingColor = const Color(0xFFFF3EA5);
     final slaapritmeColor = const Color(0xFFFFA500);
 
-    final lineColors = [
-      eetlustColor,
-      energieColor,
-      stemmingColor,
-      slaapritmeColor,
-    ];
-
     final weekStart = _startOfWeekMonday(DateTime.now());
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: _userService.watchWeekHealthStats(widget.userId, weekStart),
       builder: (context, snapshot) {
-        print('--- [GraphSection] snapshot ---');
-        print('hasData = ${snapshot.hasData}');
-        print('hasError = ${snapshot.hasError}');
-        print('error = ${snapshot.error}');
-        print('connectionState = ${snapshot.connectionState}');
-        print('docs length = ${snapshot.data?.docs.length}');
-
         final Map<int, double> eetlust = {};
         final Map<int, double> energie = {};
         final Map<int, double> stemming = {};
@@ -113,11 +97,27 @@ class _GraphSectionState extends State<GraphSection> {
           }
         }
 
+        // 🔑 AANGEPASTE LOGICA (ENIGE WIJZIGING)
         List<FlSpot> _spotsFromMap(Map<int, double> values) {
-          final entries =
-              values.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
+          if (values.isEmpty) return [];
 
-          return entries.map((e) => FlSpot(e.key.toDouble(), e.value)).toList();
+          final todayIndex = _dayIndexFromMonday(DateTime.now());
+          final firstFilledDay = values.keys.reduce(min);
+
+          double? lastValue;
+          final spots = <FlSpot>[];
+
+          for (int day = firstFilledDay; day <= todayIndex; day++) {
+            if (values.containsKey(day)) {
+              lastValue = values[day];
+            }
+
+            if (lastValue != null) {
+              spots.add(FlSpot(day.toDouble(), lastValue));
+            }
+          }
+
+          return spots;
         }
 
         LineChartBarData _buildLine(Color color, Map<int, double> values) {

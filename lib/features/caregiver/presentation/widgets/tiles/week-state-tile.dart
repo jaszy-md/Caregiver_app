@@ -18,6 +18,12 @@ class _WeekStateTileState extends ConsumerState<WeekStateTile>
   late final Animation<Offset> _slide;
   late final Animation<double> _scale;
 
+  static const Offset contentOffset = Offset(-10, -6);
+  static const Offset percentageOffset = Offset(0, 5);
+  static const Offset nameOffset = Offset(0, 2);
+  static const Offset labelOffset = Offset(0, 0);
+  static const Offset iconOffset = Offset(0, 2);
+
   @override
   void initState() {
     super.initState();
@@ -33,16 +39,15 @@ class _WeekStateTileState extends ConsumerState<WeekStateTile>
     );
 
     _slide = Tween<Offset>(
-      begin: const Offset(0.08, 0), // héél subtiel
+      begin: const Offset(0.06, 0),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _scale = Tween<double>(
-      begin: 0.97,
+      begin: 0.93,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
-    // 🔑 start animatie NA eerste paint
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _controller.forward();
     });
@@ -57,8 +62,17 @@ class _WeekStateTileState extends ConsumerState<WeekStateTile>
   @override
   Widget build(BuildContext context) {
     final stats = ref.watch(statsContextProvider);
+
     final percentage = stats?.weekPercentage;
     final percentageText = percentage != null ? '$percentage%' : '--%';
+
+    final rawName = stats?.displayName;
+    final firstName =
+        rawName != null && rawName.trim().isNotEmpty
+            ? rawName.trim().split(' ').first
+            : null;
+
+    final nameText = firstName != null ? "$firstName's" : null;
 
     return FadeTransition(
       opacity: _fade,
@@ -69,43 +83,69 @@ class _WeekStateTileState extends ConsumerState<WeekStateTile>
           child: GestureDetector(
             onTap: () => context.go('/stats'),
             child: SizedBox(
-              width: 140,
-              height: 130,
+              width: 145,
+              height: 135,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
+                  // 🎨 Achtergrond
                   Assets.images.statusWidget.image(
                     fit: BoxFit.fill,
-                    width: 140,
-                    height: 130,
+                    width: 145,
+                    height: 135,
                   ),
+
                   Transform.translate(
-                    offset: const Offset(-10, 0),
+                    offset: contentOffset,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          percentageText,
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 27,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF005159),
+                        Transform.translate(
+                          offset: percentageOffset,
+                          child: Text(
+                            percentageText,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF005159),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'Week status',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 14,
-                            color: Color(0xFF005159),
+
+                        if (nameText != null)
+                          Transform.translate(
+                            offset: nameOffset,
+                            child: Text(
+                              nameText,
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color.fromARGB(255, 205, 143, 35),
+                              ),
+                            ),
+                          ),
+
+                        Transform.translate(
+                          offset: labelOffset,
+                          child: const Text(
+                            'Week status',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 13,
+                              color: Color(0xFF005159),
+                            ),
                           ),
                         ),
-                        Assets.images.graphUp.image(
-                          width: 20,
-                          height: 20,
-                          fit: BoxFit.contain,
+
+                        Transform.translate(
+                          offset: iconOffset,
+                          child: Assets.images.graphUp.image(
+                            width: 18,
+                            height: 18,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ],
                     ),

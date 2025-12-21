@@ -39,7 +39,6 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
       CurvedAnimation(parent: _weekTileController, curve: Curves.easeOutCubic),
     );
 
-    // ✅ DIRECT starten, NIET postFrame
     _initPatientContext();
   }
 
@@ -118,7 +117,7 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
             children: [
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.fromLTRB(20, 0, 40, 0),
                   child: const Text(
                     'Blijf verbonden met uw naaste en ontvang hier alle meldingen in één overzicht.',
                     style: TextStyle(
@@ -142,7 +141,6 @@ class _CaregiverHomeScreenState extends ConsumerState<CaregiverHomeScreen>
 
           const SizedBox(height: 10),
 
-          // ✅ notifications volledig losgekoppeld
           const Expanded(child: ReceivedNotificationsSection()),
         ],
       ),
