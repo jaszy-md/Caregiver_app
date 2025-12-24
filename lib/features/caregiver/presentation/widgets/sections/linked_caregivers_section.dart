@@ -240,18 +240,20 @@ class _LinkedCaregiversSectionState
                                         showDialog(
                                           context: context,
                                           builder:
-                                              (_) =>
-                                                  ConfirmRemoveCaregiverDialog(
-                                                    name: firstName,
-                                                    onConfirm: () async {
-                                                      await service
-                                                          .disconnectCaregiver(
-                                                            patientUid:
-                                                                user.uid,
-                                                            caregiverUid: uid,
-                                                          );
-                                                    },
-                                                  ),
+                                              (
+                                                _,
+                                              ) => ConfirmRemoveCaregiverDialog(
+                                                name: firstName,
+                                                title:
+                                                    'Zorgbehoevende verwijderen',
+                                                onConfirm: () async {
+                                                  await service
+                                                      .disconnectCaregiver(
+                                                        patientUid: user.uid,
+                                                        caregiverUid: uid,
+                                                      );
+                                                },
+                                              ),
                                         );
                                       },
                                       child: const Icon(

@@ -15,8 +15,10 @@ class FirebaseInitializer {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
+    // Background handler
     FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
 
+    // Android notification channel
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'carelink_alerts',
       'CareLink Alerts',
@@ -35,8 +37,22 @@ class FirebaseInitializer {
       ),
     );
 
-    await FirebaseMessaging.instance.requestPermission();
+    // Android 13+ permission
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
 
+    // Foreground notification behavior
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+
+    // Get initial token
     final token = await FirebaseMessaging.instance.getToken();
     print('FCM token: $token');
 
@@ -44,11 +60,24 @@ class FirebaseInitializer {
 
     if (user != null && token != null) {
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        "fcmToken": token,
-        "updatedAt": FieldValue.serverTimestamp(),
+        'fcmToken': token,
+        'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
+    // 🔑 LISTEN FOR TOKEN REFRESH
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update(
+        {'fcmToken': newToken, 'updatedAt': FieldValue.serverTimestamp()},
+      );
+
+      print('FCM token refreshed: $newToken');
+    });
+
+    // Foreground message handling
     FirebaseMessaging.onMessage.listen((message) {
       print('ON MESSAGE RECEIVED: ${message.notification?.title}');
       _showLocalNotification(message);
@@ -63,8 +92,10 @@ class FirebaseInitializer {
   }
 
   static void _showLocalNotification(RemoteMessage message) {
+    final notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
     _local.show(
-      0,
+      notificationId,
       message.notification?.title ?? 'CareLink Alert',
       message.notification?.body ?? '',
       const NotificationDetails(

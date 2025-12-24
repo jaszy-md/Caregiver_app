@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:care_link/core/firestore/services/user_service.dart';
+import 'dart:math';
 
 class AuthFlowService {
   final _auth = FirebaseAuth.instance;
@@ -43,14 +44,29 @@ class AuthFlowService {
   }
 
   /// Simpele code-generator voor userID (zoals D3JF5L)
+
   String _generateUserID() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    chars.split('');
-    final random = List.generate(
-      6,
-      (index) =>
-          chars[(DateTime.now().millisecondsSinceEpoch + index) % chars.length],
-    );
-    return random.join();
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const digits = '0123456789';
+    const all = letters + digits;
+
+    final rand = Random.secure();
+    final chars = <String>[];
+
+    // garandeer minstens 1 letter
+    chars.add(letters[rand.nextInt(letters.length)]);
+
+    // garandeer minstens 1 cijfer
+    chars.add(digits[rand.nextInt(digits.length)]);
+
+    // vul aan tot 6 tekens
+    while (chars.length < 6) {
+      chars.add(all[rand.nextInt(all.length)]);
+    }
+
+    // shuffle zodat letter/cijfer niet altijd vooraan zit
+    chars.shuffle(rand);
+
+    return chars.join();
   }
 }

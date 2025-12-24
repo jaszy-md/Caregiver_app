@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 class ConfirmRemoveCaregiverDialog extends StatelessWidget {
+  final String title;
   final String name;
   final VoidCallback onConfirm;
 
   const ConfirmRemoveCaregiverDialog({
     super.key,
+    required this.title,
     required this.name,
     required this.onConfirm,
   });
@@ -37,12 +39,12 @@ class ConfirmRemoveCaregiverDialog extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Mantelzorger verwijderen',
+                  Text(
+                    title,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 19,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF003F43),
                     ),

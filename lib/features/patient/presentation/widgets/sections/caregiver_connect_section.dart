@@ -16,8 +16,8 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
   final TextEditingController _codeController = TextEditingController();
   final _service = CaregiverConnectService();
 
-  String? _errorText;
-  bool _linkedSuccessfully = false;
+  String _placeholderText = 'Voer mantelzorger-ID in';
+  Color _placeholderColor = Colors.white70;
 
   @override
   Widget build(BuildContext context) {
@@ -65,12 +65,10 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                         fontFamily: 'Poppins',
                       ),
                       onChanged: (_) {
-                        if (_errorText != null || _linkedSuccessfully) {
-                          setState(() {
-                            _errorText = null;
-                            _linkedSuccessfully = false;
-                          });
-                        }
+                        setState(() {
+                          _placeholderText = 'Voer mantelzorger-ID in';
+                          _placeholderColor = Colors.white70;
+                        });
                       },
                       decoration: InputDecoration(
                         border: InputBorder.none,
@@ -80,13 +78,10 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                           20,
                           14,
                         ),
-                        hintText: _errorText ?? 'Voer mantelzorger-ID in',
+                        hintText: _placeholderText,
                         hintMaxLines: 2,
                         hintStyle: TextStyle(
-                          color:
-                              _errorText != null
-                                  ? const Color.fromARGB(184, 160, 55, 55)
-                                  : Colors.white70,
+                          color: _placeholderColor,
                           fontSize: 14,
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.w600,
@@ -95,20 +90,6 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                       ),
                     ),
                   ),
-
-                  if (_linkedSuccessfully)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 6),
-                      child: Text(
-                        'Mantelzorger gekoppeld',
-                        style: TextStyle(
-                          color: Color(0xFF6EDC8C),
-                          fontFamily: 'Poppins',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
 
                   const SizedBox(height: 25),
 
@@ -124,18 +105,23 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
 
                       if (error != null) {
                         setState(() {
-                          _errorText = error;
-                          _linkedSuccessfully = false;
+                          _placeholderText = error;
+                          _placeholderColor = const Color.fromARGB(
+                            184,
+                            160,
+                            55,
+                            55,
+                          );
                           _codeController.clear();
                         });
                         return;
                       }
 
                       setState(() {
-                        _linkedSuccessfully = true;
+                        _placeholderText = 'Mantelzorger gekoppeld';
+                        _placeholderColor = const Color(0xFF6EDC8C);
+                        _codeController.clear();
                       });
-
-                      _codeController.clear();
                     },
                     child: Container(
                       width: 120,
@@ -235,6 +221,7 @@ class _CaregiverConnectSectionState extends State<CaregiverConnectSection> {
                                         builder:
                                             (_) => ConfirmRemoveCaregiverDialog(
                                               name: displayName,
+                                              title: 'Mantelzorger verwijderen',
                                               onConfirm: () async {
                                                 await _service
                                                     .disconnectCaregiver(
